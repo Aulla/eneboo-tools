@@ -1,5 +1,5 @@
 # encoding: UTF-8
-u"""
+"""
     Módulo de cálculo y aplicación de parches XML emulando flpatch.
 """
 from enebootools.lib.etree.ElementTree import ElementTree, XMLParser, Element
@@ -21,7 +21,7 @@ def auto_detect_encoding(text, mode = None):
         try_encodings = ['UTF-8','ISO-8859-15']
     try_encoding = try_encodings.pop(0)
     try:
-        utxt = unicode(text, try_encoding)
+        utxt = str(text, try_encoding)
         return try_encoding
     except UnicodeDecodeError:
         if try_encodings:
@@ -75,7 +75,7 @@ class FLXMLParser(object):
             if validator:
                 try:
                     if validator(idelem) == False: continue
-                except Exception,e:
+                except Exception as e:
                     self.iface.exception("Validating", str(e))
                     continue
             if attr == "#text": 
@@ -221,10 +221,10 @@ class FLXMLParser(object):
             
 def _xf(x): #xml-format
     from lxml import etree
-    return unicode(etree.tostring(x,pretty_print=True, encoding = "UTF8"), "UTF8")
+    return str(etree.tostring(x,pretty_print=True, encoding = "UTF8"), "UTF8")
         
 def test_lxml(iface, base):
-    iface.debug(u"Pruebas LXML $base:%s " % (base))
+    iface.debug("Pruebas LXML $base:%s " % (base))
     try:
         from lxml import etree
     except ImportError:
@@ -234,7 +234,7 @@ def test_lxml(iface, base):
         file_base = open(base, "r")
         fbase = file_base.read(200)
         file_base.seek(0)
-    except IOError, e:
+    except IOError as e:
         iface.error("Error al abrir el fichero base o final: " + str(e))
         return
     
@@ -302,26 +302,26 @@ def test_lxml(iface, base):
                 lbo = xlist[-1]
                 path = path.replace(tree.getpath(lbo),"//%s[@ctx-id=%s]" % (lbo.tag,repr(lbo.get('ctx-id'))))
 
-            print prefix, node.get('ctx-scope'), node.get('ctx-entity-type'), node.tag ,path+"/%s[@ctx-id=%s]" %  (node.tag, node.get('ctx-id'))
+            print(prefix, node.get('ctx-scope'), node.get('ctx-entity-type'), node.tag ,path+"/%s[@ctx-id=%s]" %  (node.tag, node.get('ctx-id')))
         print_node(node,"*")
         for subnode in node.xpath("*"):
             if subnode.get('ctx-scope') == "global": continue
             if subnode.get('ctx-scope') == "unnamed": continue
             # print_node(subnode,"    -")
-            print "    - ", subnode.get('ctx-scope'), subnode.get('ctx-entity-type'), subnode.tag, subnode.get('ctx-id')
+            print("    - ", subnode.get('ctx-scope'), subnode.get('ctx-entity-type'), subnode.tag, subnode.get('ctx-id'))
             for subsub in subnode.xpath("*"):
-                print "            ", etree.tostring(subsub)
-        print
+                print("            ", etree.tostring(subsub))
+        print()
         
     
     
 
 def diff_xml(iface, base, final): 
-    iface.debug(u"Procesando Diff XML $base:%s -> $final:%s" % (base, final))
+    iface.debug("Procesando Diff XML $base:%s -> $final:%s" % (base, final))
     try:
         fbase = open(base, "r").read()
         ffinal = open(final, "r").read()
-    except IOError, e:
+    except IOError as e:
         iface.error("Error al abrir el fichero base o final: " + str(e))
         return
     
@@ -530,7 +530,7 @@ def get_elem_contents(iface, elem):
     items["#t"] = textvalue
     #items["#textnfixes"] = textnfixes
     #items["#textdepth"] = textdepth
-    for k,v in elem.attrib.items():
+    for k,v in list(elem.attrib.items()):
         items["@%s" % k] = v
     
     return items
@@ -541,7 +541,7 @@ def compare_elems(iface, base_elem, final_elem):
     base = get_elem_contents(iface, base_elem)
     final = get_elem_contents(iface, final_elem)
     if base == final: return True
-    for k, v in base.items()[:]:
+    for k, v in list(base.items())[:]:
         if k not in final: final[k] = None
         if final.get(k, None) == v: 
             del final[k]
@@ -557,7 +557,7 @@ def _compare_subelems(iface, base_elem, final_elem):
     for x in final: d[x] += 1    
     for x in base: d[x] -= 1    
     d = dict(d)
-    for k,v in d.items():
+    for k,v in list(d.items()):
         if v == 0: del d[k]
     
     if not equal and d == {}:

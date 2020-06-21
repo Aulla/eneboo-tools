@@ -23,7 +23,7 @@ from enebootools.packager import pkgjoiner, pkgsplitter
 
 
 class PackagerInterface(EnebooToolsInterface):
-    module_description = u"Herramientas para empaquetar y desempaquetar ficheros .eneboopkg"
+    module_description = "Herramientas para empaquetar y desempaquetar ficheros .eneboopkg"
     def __init__(self, setup_parser = True):
         EnebooToolsInterface.__init__(self, False)
         if setup_parser: self.setup_parser()
@@ -35,7 +35,7 @@ class PackagerInterface(EnebooToolsInterface):
             name = "create",
             args = ["modulefolder"],
             options = [],
-            description = u"Lee la carpeta $modulefolder, examina los módulos y los empaqueta",
+            description = "Lee la carpeta $modulefolder, examina los módulos y los empaqueta",
             call_function = self.do_create,
             )
         self.create_action.set_help_arg(
@@ -46,7 +46,7 @@ class PackagerInterface(EnebooToolsInterface):
             name = "unpack",
             args = ["packagefile"],
             options = [],
-            description = u"Lee el fichero $packagefile y desempaqueta los módulos en una carpeta",
+            description = "Lee el fichero $packagefile y desempaqueta los módulos en una carpeta",
             call_function = self.do_unpack,
             )
         self.create_action.set_help_arg(
@@ -58,7 +58,7 @@ class PackagerInterface(EnebooToolsInterface):
             name = "split",
             args = ["packagefile"],
             options = [],
-            description = u"Lee el fichero $packagefile y genera una carpeta con su contenido",
+            description = "Lee el fichero $packagefile y genera una carpeta con su contenido",
             call_function = self.do_split,
             )
         self.split_action.set_help_arg(
@@ -69,7 +69,7 @@ class PackagerInterface(EnebooToolsInterface):
             name = "join",
             args = ["packagefolder"],
             options = [],
-            description = u"Lee la carpeta $packagefolder y genera un fichero empaquetando su contenido",
+            description = "Lee la carpeta $packagefolder y genera un fichero empaquetando su contenido",
             call_function = self.do_join,
             )
         self.join_action.set_help_arg(
@@ -82,26 +82,26 @@ class PackagerInterface(EnebooToolsInterface):
     def do_create(self, modulefolder):
         try:
             return pkgjoiner.createpkg(self, modulefolder)
-        except Exception,e:
+        except Exception as e:
             self.exception(type(e).__name__,str(e))
     
     
     def do_unpack(self, packagefile):
         try:
             return pkgsplitter.unpackpkg(self, packagefile)
-        except Exception,e:
+        except Exception as e:
             self.exception(type(e).__name__,str(e))
     
     def do_split(self, packagefile):
         try:
             return pkgsplitter.splitpkg(self, packagefile)
-        except Exception,e:
+        except Exception as e:
             self.exception(type(e).__name__,str(e))
     
               
     def do_join(self, packagefolder):
         try:
             return pkgjoiner.joinpkg(self, packagefolder)
-        except Exception,e:
+        except Exception as e:
             self.exception(type(e).__name__,str(e))
     

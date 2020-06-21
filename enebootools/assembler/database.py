@@ -17,10 +17,10 @@ from enebootools.mergetool import projectbuilder
 from enebootools.mergetool import MergeToolInterface    
 
 
-from databasemodels import KnownObjects
+from .databasemodels import KnownObjects
 
-from mypeewee import transactional
-from kobjects import ObjectIndex, FeatureObject
+from .mypeewee import transactional
+from .kobjects import ObjectIndex, FeatureObject
 
 from enebootools import output_encoding
 
@@ -59,20 +59,20 @@ def init_database():
 @transactional(database)
 def update_database(iface):
     from datetime import datetime
-    iface.info(u"Actualizando base de datos de módulos y funcionalidades . . . ")
+    iface.info("Actualizando base de datos de módulos y funcionalidades . . . ")
     KnownObjects.delete().execute() # -- Borrar todos los objetos
     module_root = {}
     for path in cfg.module.modulefolders:
         if not os.path.exists(path):
-            iface.debug(u"Se ignora directorio inexistente %s" % repr(path))
+            iface.debug("Se ignora directorio inexistente %s" % repr(path))
             continue
         modules = find_files(path,"*.mod", True)
         if not modules:
-            iface.warn(u"Directorio no contiene módulos %s" % repr(path))
+            iface.warn("Directorio no contiene módulos %s" % repr(path))
             continue
-        iface.info(u"Se encontraron %d modulos en la carpeta %s" % (len(modules), repr(path)))
+        iface.info("Se encontraron %d modulos en la carpeta %s" % (len(modules), repr(path)))
         for module in modules:
-            iface.debug(u"Módulo %s" % module)
+            iface.debug("Módulo %s" % module)
             mtime = get_max_mtime(path,module)
             dmtime = datetime.fromtimestamp(mtime)
             obj = KnownObjects()
@@ -94,15 +94,15 @@ def update_database(iface):
     feature_root = {}
     for path in cfg.module.featurefolders:
         if not os.path.exists(path):
-            iface.debug(u"Se ignora directorio inexistente %s" % repr(path))
+            iface.debug("Se ignora directorio inexistente %s" % repr(path))
             continue
         features = find_files(path,"*.feature.ini", True)
         if not features:
             iface.warn("Directorio no contiene funcionalidades %s" % repr(path))
             continue
-        iface.info(u"Se encontraron %d funcionalidades en la carpeta %s" % (len(features), repr(path)))
+        iface.info("Se encontraron %d funcionalidades en la carpeta %s" % (len(features), repr(path)))
         for feature in features:
-            iface.debug(u"Funcionalidad %s" % feature)
+            iface.debug("Funcionalidad %s" % feature)
             mtime = get_max_mtime(path,feature)
             dmtime = datetime.fromtimestamp(mtime)
             # print dmtime.strftime("%a %d %B %Y @ %H:%M:%S %z")
@@ -126,13 +126,13 @@ def list_objects(iface):
     db = init_database()
     oi = ObjectIndex(iface)
     oi.analyze_objects()
-    iface.msg(u"\nMódulos cargados:")
+    iface.msg("\nMódulos cargados:")
     for obj in sorted(oi.modules(), key=lambda obj:obj.formal_name()):
-        iface.msg(u" - %s" % obj.formal_name())
+        iface.msg(" - %s" % obj.formal_name())
 
-    iface.msg(u"\nFuncionalidades cargadas:")
+    iface.msg("\nFuncionalidades cargadas:")
     for obj in sorted(oi.features(), key=lambda obj:obj.formal_name()):
-        iface.msg(u" - %s" % obj.formal_name())
+        iface.msg(" - %s" % obj.formal_name())
 
 def do_howto_build(iface,target, feat):
     db = init_database()
@@ -194,23 +194,23 @@ def do_build(iface,target, feat, rebuild=True, dstfolder = None):
 def uinput(question, possible_values = None):
     if isinstance(possible_values, list):
         completer1.enable_value_completer(possible_values)
-    elif isinstance(possible_values, basestring):       
+    elif isinstance(possible_values, str):       
         if possible_values == "os.path":
             completer1.enable_path_completer()
-    text= raw_input(unicode(question).encode(output_encoding)).decode(output_encoding)
+    text= input(str(question).encode(output_encoding)).decode(output_encoding)
     completer1.disable_completer()
     return text
 
 def uinput_mask(question, mask, errortext = None):
     if errortext is None:
-        errortext = u"El valor '%s' no es válido"
+        errortext = "El valor '%s' no es válido"
     while True:
         text = uinput(question)
         m1 = re.search(mask,text)
         if m1:
             return text,m1
         else:
-            print errortext % text
+            print(errortext % text)
     
     
 def do_save_fullpatch(iface, feat):
@@ -242,7 +242,7 @@ def test_deps(iface, feat):
     
     for filename in info["requires"]:
         if filename not in file_index:
-            print "??? Dependencia no encontrada para:", filename
+            print("??? Dependencia no encontrada para:", filename)
             continue
         modules = file_index[filename]["provided-by-module"]
         features = file_index[filename]["provided-by-feature"]
@@ -271,37 +271,37 @@ def test_deps(iface, feat):
     new_features.sort()
     
     if new_modules:
-        print u"La funcionalidad requiere además de los siguientes módulos:"
+        print("La funcionalidad requiere además de los siguientes módulos:")
         for m in new_modules:
-            print " - %s" % m
-        print
+            print(" - %s" % m)
+        print()
         
     if new_features:
-        print u"La funcionalidad requiere además de las siguientes funcionalidades:"
+        print("La funcionalidad requiere además de las siguientes funcionalidades:")
         try: new_features.remove(feature.formal_name())
         except ValueError: pass
         for m in new_features:
-            print " - %s" % m
-        print
+            print(" - %s" % m)
+        print()
         
             
     
 def select_option(title, options, answers, question = None, errortext = None, default = "", accept_invalid = False, callback = None):
     if question is None:
-        question = u"Seleccione una opción: "
+        question = "Seleccione una opción: "
     if errortext is None:
-        errortext = u"El valor '%s' no es una opción válida"
-    print title
+        errortext = "El valor '%s' no es una opción válida"
+    print(title)
     answers = answers[:len(options)]
     for answer, option in zip(answers,options):
-        print u"    %s) %s" % (answer, option)
+        print("    %s) %s" % (answer, option))
     def ask():
         answer = uinput(question, possible_values = answers)
         if answer == "": answer = default
         answerlist = [ x.strip() for x in answer.split(" ") if x.strip() ]
         for answer in answerlist:
             if answer not in answers: 
-                print errortext % answer
+                print(errortext % answer)
                 return []
         return answerlist
     answerlist = []
@@ -311,15 +311,15 @@ def select_option(title, options, answers, question = None, errortext = None, de
             if accept_invalid:
                 return None, None
         elif len(answerlist) > 1 and callback is None:
-            print u"No se acepta más de una respuesta."
+            print("No se acepta más de una respuesta.")
             answerlist[:] = []
         
     if callback:
         for answer in answerlist:
             try:
                 callback(answer, options[answers.index(answer)])
-            except Exception, e:
-                print e
+            except Exception as e:
+                print(e)
     else:
         answer = answerlist[0]
         return answer, options[answers.index(answer)]
@@ -377,8 +377,8 @@ class MyCompleter(object):
                 return matches[state]
             except IndexError:
                 return None
-        except Exception,e:
-            print e
+        except Exception as e:
+            print(e)
             
     def path_completer(self,text, state):
         return None # <- por defecto hace ya lo que queremos 
@@ -393,18 +393,18 @@ def do_new(iface, subfoldername = None, description = None, patchurl = None):
     oi = ObjectIndex(iface)
     oi.analyze_objects()
     fpath = ftype = fcode = fname = fdesc = None
-    if description: fdesc = unicode(description, output_encoding)
+    if description: fdesc = str(description, output_encoding)
     if subfoldername:
-        match = re.match(u"^([a-z]+)([A-Z0-9][0-9]{3})-([a-z][a-z0-9_]{3,20})$", unicode(subfoldername, output_encoding))
+        match = re.match("^([a-z]+)([A-Z0-9][0-9]{3})-([a-z][a-z0-9_]{3,20})$", str(subfoldername, output_encoding))
         if not match:
-            print "El nombre de subcarpeta '%s' no es válido" % subfoldername
+            print("El nombre de subcarpeta '%s' no es válido" % subfoldername)
             return False
         ftype, fcode, fname = match.groups()
     # SELECCIONAR CARPETA DONDE SE GUARDARA:
     folders = []
     for path in cfg.module.featurefolders:
         if not os.path.exists(path):
-            iface.debug(u"Se ignora directorio inexistente %s" % repr(path))
+            iface.debug("Se ignora directorio inexistente %s" % repr(path))
             continue
         folders.append(path)
     if len(folders) == 0:
@@ -412,28 +412,28 @@ def do_new(iface, subfoldername = None, description = None, patchurl = None):
         return False
 
     def change_fpath():
-        print
+        print()
         if len(folders) == 1:
             fpath = folders[0]
-            print u"La funcionalidad se guardará en la única carpeta válida: '%s'" % fpath
+            print("La funcionalidad se guardará en la única carpeta válida: '%s'" % fpath)
         else:
             a,fpath = select_option( 
-                    title = u"Existen varias carpetas de funcionalidades:", 
-                    question = u"Seleccione en qué carpeta desea crear la nueva funcionalidad: ", 
+                    title = "Existen varias carpetas de funcionalidades:", 
+                    question = "Seleccione en qué carpeta desea crear la nueva funcionalidad: ", 
                     options = folders,
                     answers = letters,
                     )
         return fpath
     fpath = folders[-1]
     
-    ftype_options = [u"extensión",u"proyecto", u"conjunto de extensiones"]
+    ftype_options = ["extensión","proyecto", "conjunto de extensiones"]
     ftype_answers = ["ext","prj","set"]
-    ftype_idx = dict(zip(ftype_answers,ftype_options))
+    ftype_idx = dict(list(zip(ftype_answers,ftype_options)))
     def change_ftype():
-        print
+        print()
         ftype,o = select_option( 
-                title = u"Qué tipo de funcionalidad va a crear?", 
-                question = u"Seleccione una opción: ", 
+                title = "Qué tipo de funcionalidad va a crear?", 
+                question = "Seleccione una opción: ", 
                 options = ftype_options,
                 answers = ftype_answers,
                 )
@@ -442,43 +442,43 @@ def do_new(iface, subfoldername = None, description = None, patchurl = None):
     if ftype is None: ftype = change_ftype()
     
     def change_fcode():
-        print
+        print()
         t,m = uinput_mask(
-                    question = u"Código para la nueva funcionalidad: ",
+                    question = "Código para la nueva funcionalidad: ",
                     mask = r"^([A-Z0-9]\d{3})$", 
-                    errortext = u"ERROR: El valor '%s' debe seguir el formato A999 (A puede ser número).",
+                    errortext = "ERROR: El valor '%s' debe seguir el formato A999 (A puede ser número).",
                     )
         fcode = m.group(0)
         return fcode
     if fcode is None: fcode = change_fcode()
     
     def change_fname():    
-        print
+        print()
         t,m = uinput_mask(
-                    question = u"Nombre corto de funcionalidad: ",
+                    question = "Nombre corto de funcionalidad: ",
                     mask = r"^([a-z][a-z0-9_]{3,19})$", 
-                    errortext = u"ERROR: El valor '%s' debe tener entre 4 y 20 carácteres, ser minúsculas y tener solo letras y números (empezando siempre por letra)",
+                    errortext = "ERROR: El valor '%s' debe tener entre 4 y 20 carácteres, ser minúsculas y tener solo letras y números (empezando siempre por letra)",
                     )
         fname = m.group(0)
         return fname
     if fname is None: fname = change_fname()
     
     def change_fdesc():
-        print
-        fdesc = uinput(u"Descripción de la funcionalidad: ")
+        print()
+        fdesc = uinput("Descripción de la funcionalidad: ")
         return fdesc
     if fdesc is None: fdesc = change_fdesc()
     
     def change_fload_patch():
         t,m = uinput_mask(
-                question = u"Ruta hasta el parche: ",
+                question = "Ruta hasta el parche: ",
                 mask = r"^([\w./-]*)$", 
-                errortext = u"ERROR: El valor '%s' debe ser una ruta válida",
+                errortext = "ERROR: El valor '%s' debe ser una ruta válida",
                 )
         if os.path.exists(t):
             return t
         else:
-            print "ERROR: La ruta '%s' no existe." % t
+            print("ERROR: La ruta '%s' no existe." % t)
             return None
         
 
@@ -493,48 +493,48 @@ def do_new(iface, subfoldername = None, description = None, patchurl = None):
         info = fpatch.get_patch_info()
         for filename in info["requires"]:
             if filename not in file_index:
-                print "??? Dependencia no encontrada para:", filename
+                print("??? Dependencia no encontrada para:", filename)
                 continue
             modules = file_index[filename]["provided-by-module"]
             features = file_index[filename]["provided-by-feature"]
             for m in modules:
                 if m not in fdep_modules:
                     fdep_modules.append(m)
-                    print u"Se agregó automáticamente la dependencia con el módulo '%s'" % m
+                    print("Se agregó automáticamente la dependencia con el módulo '%s'" % m)
             for f in features:
                 if f not in fdep_features:
                     fdep_features.append(f)
-                    print u"Se agregó automáticamente la dependencia con la funcionalidad '%s'" % f
+                    print("Se agregó automáticamente la dependencia con la funcionalidad '%s'" % f)
     
     if fload_patch:
         try:
             checkpatch_deps(fload_patch)
-        except Exception, e:
-            print u"Hubo un problema al intentar comprobar el parche. Probablemente la carpeta sea incorrecta."
+        except Exception as e:
+            print("Hubo un problema al intentar comprobar el parche. Probablemente la carpeta sea incorrecta.")
     
     while True:
         fdstpath = os.path.join(fpath,"%s%s-%s" % (ftype, fcode, fname))
-        print
-        print u"**** Asistente de creación de nueva funcionalidad ****"
-        print 
-        print u" : Carpeta destino : %s" % fdstpath
-        print u" : Nombre          : %s - %s - %s " % (ftype_idx[ftype], fcode, fname)
-        print u" : Descripción     : %s " % (fdesc)
-        print
-        print u" : Dependencias    : %d módulos, %d funcionalidades" % (len(fdep_modules),len(fdep_features))
-        print u" : Importar Parche : %s" % (fload_patch)
-        print
+        print()
+        print("**** Asistente de creación de nueva funcionalidad ****")
+        print() 
+        print(" : Carpeta destino : %s" % fdstpath)
+        print(" : Nombre          : %s - %s - %s " % (ftype_idx[ftype], fcode, fname))
+        print(" : Descripción     : %s " % (fdesc))
+        print()
+        print(" : Dependencias    : %d módulos, %d funcionalidades" % (len(fdep_modules),len(fdep_features)))
+        print(" : Importar Parche : %s" % (fload_patch))
+        print()
         menu1_options = []
         menu1_answers = []
-        menu1_options += [ u"Cambiar datos básicos"]
+        menu1_options += [ "Cambiar datos básicos"]
         menu1_answers += [ "c" ]
-        menu1_options += [ u"Dependencias", u"Importar parche", u"Eliminar parche" ]
+        menu1_options += [ "Dependencias", "Importar parche", "Eliminar parche" ]
         menu1_answers += [ "d"           , "i"                , "e"]
-        menu1_options += [ u"Aceptar y crear", u"Cancelar y Salir" ]
+        menu1_options += [ "Aceptar y crear", "Cancelar y Salir" ]
         menu1_answers += [ "a"              , "q" ]
         a1,o1 = select_option( 
-                title = u"--  Menú de opciones generales --", 
-                question = u"Seleccione una opción: ", 
+                title = "--  Menú de opciones generales --", 
+                question = "Seleccione una opción: ", 
                 options = menu1_options,
                 answers = menu1_answers,
                 )
@@ -543,8 +543,8 @@ def do_new(iface, subfoldername = None, description = None, patchurl = None):
             if fload_patch:
                 try:
                     checkpatch_deps(fload_patch)
-                except Exception, e:
-                    print u"Hubo un problema al intentar comprobar el parche. Probablemente la carpeta sea incorrecta."
+                except Exception as e:
+                    print("Hubo un problema al intentar comprobar el parche. Probablemente la carpeta sea incorrecta.")
                     
         if a1 == "e":
             fload_patch = None
@@ -557,26 +557,26 @@ def do_new(iface, subfoldername = None, description = None, patchurl = None):
                 ks, vs = kvs
                 ks += [ k ]
                 vs += [ v ]
-            agregar_opcion2(kvs, "+m", u"Agregar módulo")
-            agregar_opcion2(kvs, "-m", u"Eliminar módulo")
-            agregar_opcion2(kvs, "+f", u"Agregar funcionalidad")
-            agregar_opcion2(kvs, "-f", u"Eliminar funcionalidad")
-            agregar_opcion2(kvs, "q", u"Finalizar edición")
+            agregar_opcion2(kvs, "+m", "Agregar módulo")
+            agregar_opcion2(kvs, "-m", "Eliminar módulo")
+            agregar_opcion2(kvs, "+f", "Agregar funcionalidad")
+            agregar_opcion2(kvs, "-f", "Eliminar funcionalidad")
+            agregar_opcion2(kvs, "q", "Finalizar edición")
             while True:
-                print
-                print u"**** Dependencias ****"
-                print 
-                print u" : Módulos :"
+                print()
+                print("**** Dependencias ****")
+                print() 
+                print(" : Módulos :")
                 for d in fdep_modules:
-                    print u"    - %s" % d
-                print
-                print u" : Funcionalidades :"
+                    print("    - %s" % d)
+                print()
+                print(" : Funcionalidades :")
                 for d in fdep_features:
-                    print u"    - %s" % d
-                print
+                    print("    - %s" % d)
+                print()
                 a2,o2 = select_option( 
-                        title = u"--  Menú de dependencias --", 
-                        question = u"Seleccione una opción: ", 
+                        title = "--  Menú de dependencias --", 
+                        question = "Seleccione una opción: ", 
                         options = menu2_options,
                         answers = menu2_answers,
                         )
@@ -591,8 +591,8 @@ def do_new(iface, subfoldername = None, description = None, patchurl = None):
                         v1.append(v)
                         
                     select_option( 
-                            title = u"--  Agregar dependencia de módulo --", 
-                            question = u"Seleccione un módulo: ", 
+                            title = "--  Agregar dependencia de módulo --", 
+                            question = "Seleccione un módulo: ", 
                             answers = k1,
                             options = v1,
                             accept_invalid = True,
@@ -609,8 +609,8 @@ def do_new(iface, subfoldername = None, description = None, patchurl = None):
                         k1.append(k)
                         v1.append(v)
                     select_option( 
-                            title = u"--  Eliminar dependencia de módulo --", 
-                            question = u"Seleccione un módulo: ", 
+                            title = "--  Eliminar dependencia de módulo --", 
+                            question = "Seleccione un módulo: ", 
                             answers = k1,
                             options = v1,
                             accept_invalid = True,
@@ -627,8 +627,8 @@ def do_new(iface, subfoldername = None, description = None, patchurl = None):
                         v1.append(v)
                         
                     select_option( 
-                            title = u"--  Agregar dependencia de funcionalidad --", 
-                            question = u"Seleccione una funcionalidad: ", 
+                            title = "--  Agregar dependencia de funcionalidad --", 
+                            question = "Seleccione una funcionalidad: ", 
                             answers = k1,
                             options = v1,
                             accept_invalid = True,
@@ -645,8 +645,8 @@ def do_new(iface, subfoldername = None, description = None, patchurl = None):
                         v1.append(v)
                         
                     select_option( 
-                            title = u"--  Eliminar dependencia de funcionalidad --", 
-                            question = u"Seleccione una funcionalidad: ", 
+                            title = "--  Eliminar dependencia de funcionalidad --", 
+                            question = "Seleccione una funcionalidad: ", 
                             answers = k1,
                             options = v1,
                             accept_invalid = True,
@@ -663,25 +663,25 @@ def do_new(iface, subfoldername = None, description = None, patchurl = None):
                 ks, vs = kvs
                 ks += [ k ]
                 vs += [ v ]
-            agregar_opcion2(kvs, "0", u"Seleccionar una carpeta diferente")
-            agregar_opcion2(kvs, "1", u"Cambiar tipo de funcionalidad")
-            agregar_opcion2(kvs, "2", u"Cambiar código")
-            agregar_opcion2(kvs, "3", u"Cambiar nombre")
-            agregar_opcion2(kvs, "4", u"Cambiar descripción")
-            agregar_opcion2(kvs, "q", u"Finalizar edición")
+            agregar_opcion2(kvs, "0", "Seleccionar una carpeta diferente")
+            agregar_opcion2(kvs, "1", "Cambiar tipo de funcionalidad")
+            agregar_opcion2(kvs, "2", "Cambiar código")
+            agregar_opcion2(kvs, "3", "Cambiar nombre")
+            agregar_opcion2(kvs, "4", "Cambiar descripción")
+            agregar_opcion2(kvs, "q", "Finalizar edición")
             while True:
-                print
-                print u"**** Cambiar datos básicos ****"
-                print 
-                print u" : Carpeta : %s" % fpath
-                print u" : Tipo    : %s (%s) " % (ftype_idx[ftype],ftype)
-                print u" : Código  : %s" % (fcode)
-                print u" : Nombre  : %s" % (fname)
-                print u" : Descr.  : %s " % (fdesc)
-                print
+                print()
+                print("**** Cambiar datos básicos ****")
+                print() 
+                print(" : Carpeta : %s" % fpath)
+                print(" : Tipo    : %s (%s) " % (ftype_idx[ftype],ftype))
+                print(" : Código  : %s" % (fcode))
+                print(" : Nombre  : %s" % (fname))
+                print(" : Descr.  : %s " % (fdesc))
+                print()
                 a2,o2 = select_option( 
-                        title = u"--  Menú de datos básicos --", 
-                        question = u"Seleccione una opción: ", 
+                        title = "--  Menú de datos básicos --", 
+                        question = "Seleccione una opción: ", 
                         options = menu2_options,
                         answers = menu2_answers,
                         )
@@ -700,12 +700,12 @@ def do_new(iface, subfoldername = None, description = None, patchurl = None):
             continue
             
         if a1 == "a": 
-            print
+            print()
             if os.path.exists(fdstpath):
-                print u"La carpeta '%s' ya existe. Borrela o cambie el nombre de la carpeta de destino." % fdstpath
+                print("La carpeta '%s' ya existe. Borrela o cambie el nombre de la carpeta de destino." % fdstpath)
                 continue
                 
-            print u"Guardando ... "
+            print("Guardando ... ")
             
             # GUARDAR AQUI
             create_new_feature(
@@ -718,12 +718,12 @@ def do_new(iface, subfoldername = None, description = None, patchurl = None):
                 fdep_features = fdep_features,
                 fload_patch = fload_patch,
                 )
-            print
+            print()
             break
         if a1 == "q": 
-            print
-            print u"Se ha cancelado la operación."
-            print
+            print()
+            print("Se ha cancelado la operación.")
+            print()
             break
         
 def create_new_feature(path, fcode, fname, ftype, fdesc, fdep_modules, fdep_features, fload_patch):

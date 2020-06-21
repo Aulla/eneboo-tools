@@ -37,7 +37,7 @@ class Action(object):
             return "$%s" % arg
     
     def get_arg_help(self,arg):
-        if arg not in self.args: raise ValueError, "Argument not defined"
+        if arg not in self.args: raise ValueError("Argument not defined")
         optional = False
         help = self.help_args.get(arg, "Undocumented")
         return "%s - %s" % (self.get_arg_var(arg), help)
@@ -57,38 +57,38 @@ class Action(object):
             if self.min_file_list == 0:
                 files = "[ %s ]" % files
         
-        print "%s %s [shortopts] [options] %s" % (
+        print("%s %s [shortopts] [options] %s" % (
             self.parse.name,
             self.get_help_args(),
             files,
-            )
+            ))
         if self.description: 
             tw1 = textwrap.TextWrapper(
                 initial_indent='  ',  
                 subsequent_indent='    ',  
                 )
-            print          
-            print tw1.fill(self.description)
+            print()          
+            print(tw1.fill(self.description))
             
         tw2 = textwrap.TextWrapper(
           initial_indent='  * ',  
           subsequent_indent=' '*12,  
           )
-        print
-        print " arguments:"
+        print()
+        print(" arguments:")
         for arg in self.args:
-            print tw2.fill( self.get_arg_help(arg) )
-        print
+            print(tw2.fill( self.get_arg_help(arg) ))
+        print()
         if not self.parent: return
         tw2.initial_indent = '    '
-        print " options:"
+        print(" options:")
         for name in self.options:
             option = self.parent.options[name]
             if option.level != "action": continue
             text_parts = ["-%s" % c for c in option.short] + ["--%s" % c for c in option.aliases]
             text_parts.append(option.get_help())
-            print tw2.fill(", ".join(text_parts))
-        print
+            print(tw2.fill(", ".join(text_parts)))
+        print()
 
         
         
@@ -105,42 +105,42 @@ class Action(object):
         refargs = self.args[:]
         
         if self.max_file_list == 0 and len(self.parse.files):
-            print u"ERROR: La acción %s no soporta el uso de argumentos finales y se han recibido %d" % (
+            print("ERROR: La acción %s no soporta el uso de argumentos finales y se han recibido %d" % (
                 self.name,
                 len(self.parse.files),
-            )
+            ))
             return
         
         if self.max_file_list > 0 and len(self.parse.files) > self.max_file_list:
-            print u"ERROR: La acción %s recibe como máximo %d argumentos finales y se han recibido %d" % (
+            print("ERROR: La acción %s recibe como máximo %d argumentos finales y se han recibido %d" % (
                 self.name,
                 self.max_file_list,
                 len(self.parse.files),
-            )
+            ))
             return
         
         if len(self.parse.files) < self.min_file_list:
-            print u"ERROR: La acción %s recibe como mínimo %d argumentos finales y se han recibido %d" % (
+            print("ERROR: La acción %s recibe como mínimo %d argumentos finales y se han recibido %d" % (
                 self.name,
                 self.min_file_list,
                 len(self.parse.files),
-            )
+            ))
             return
         
         if len(self.parse.actions[parse_count:]) < self.min_argcount:
-            print u"ERROR: La acción %s espera como mínimo %d argumentos y se han recibido %d" % (
+            print("ERROR: La acción %s espera como mínimo %d argumentos y se han recibido %d" % (
                 self.name,
                 self.min_argcount,
                 len(self.parse.actions[parse_count:]),
-            )
+            ))
             return
             
         if len(self.parse.actions[parse_count:]) > len(refargs):
-            print u"ERROR: La acción %s espera %d argumentos y se han recibido %d" % (
+            print("ERROR: La acción %s espera %d argumentos y se han recibido %d" % (
                 self.name,
                 len(refargs),
                 len(self.parse.actions[parse_count:]),
-            )
+            ))
             return
         for action in self.parse.actions[parse_count:]:
             argname = refargs.pop(0)
@@ -180,13 +180,13 @@ class Option(object):
     def execute_option(self, value):
         if self.variable is None:
             if value is not None:
-                print u"ERROR: La opción '%s' no acepta valores." % (self.name)
+                print("ERROR: La opción '%s' no acepta valores." % (self.name))
                 return False
             if self.call_function is None: return True
             return self.call_function()
         else:
             if value is None:
-                print u"ERROR: La opción '%s' requiere un valor." % (self.name)
+                print("ERROR: La opción '%s' requiere un valor." % (self.name))
                 return False
             if self.call_function is None: return True
             return self.call_function(value)
@@ -243,34 +243,34 @@ class ArgParser(object):
         self.actions[name] = action
     
     def help(self):
-        print "%s action [options] [-- files]" % (self.parse.name)
+        print("%s action [options] [-- files]" % (self.parse.name))
         if self.description: 
             tw1 = textwrap.TextWrapper(
                 initial_indent='  ',  
                 subsequent_indent='    ',  
                 )
-            print          
-            print tw1.fill(self.description)
-        print
-        print " actions:"
+            print()          
+            print(tw1.fill(self.description))
+        print()
+        print(" actions:")
         tw2 = textwrap.TextWrapper(
           initial_indent='  * ',  
           subsequent_indent=' '*12,  
           )
         for name in self.known_actions:
             action = self.actions[name]
-            print tw2.fill(action.get_help() )
-        print 
+            print(tw2.fill(action.get_help() ))
+        print() 
         tw2.initial_indent = '    '
-        print " options:"
+        print(" options:")
         for name in self.known_options:
             option = self.options[name]
             if option.level != "parser": continue
             text_parts = ["-%s" % c for c in option.short] + ["--%s" % c for c in option.aliases]
             text_parts.append(option.get_help())
-            print tw2.fill(", ".join(text_parts))
+            print(tw2.fill(", ".join(text_parts)))
 
-        print
+        print()
     
     def parse_args(self, argv = None):
         self.parse = Parse()
@@ -287,13 +287,13 @@ class ArgParser(object):
         self.parse.values = p['values']
         self.parse.actions = p['actions']
         self.parse.files = p['files']
-        if self.debug or 'debug-parseargs' in self.parse.options: print str(self.parse)
+        if self.debug or 'debug-parseargs' in self.parse.options: print(str(self.parse))
     
     def get_action(self, name = None):
         if name is None:
             name = self.parse.actions[self.parse_count]
         if name not in self.known_actions:
-            print u"ERROR: Acción %s desconocida." % (repr(name))
+            print("ERROR: Acción %s desconocida." % (repr(name)))
             return
         action = self.actions[name]
         return action
@@ -319,7 +319,7 @@ class ArgParser(object):
             return     
                            
         if len(self.parse.actions) == self.parse_count:
-            print u"ERROR: No se ha indicado  ninguna acción a realizar y se requiere una"
+            print("ERROR: No se ha indicado  ninguna acción a realizar y se requiere una")
             return
         action_list = []
         action = self.get_action()
@@ -330,20 +330,20 @@ class ArgParser(object):
 
         for name in self.parse.options:
             if name not in self.options:
-                print u"ERROR: Opción '%s' desconocida." % name
+                print("ERROR: Opción '%s' desconocida." % name)
                 return
             option = self.options[name]
             if option.execute_option(self.parse.values[name]) == False:
-                print u"Hubo un error procesando la opción '%s'." % (name)
+                print("Hubo un error procesando la opción '%s'." % (name))
                 return
         
         for name in self.parse.shortopts:
             if name not in self.short_options:
-                print u"ERROR: Opción corta '%s' desconocida." % name
+                print("ERROR: Opción corta '%s' desconocida." % name)
                 return
             option = self.short_options[name]
             if option.execute_option(None) == False:
-                print u"Hubo un error procesando la opción '%s'." % (name)
+                print("Hubo un error procesando la opción '%s'." % (name))
                 return
             
         
@@ -381,13 +381,13 @@ def parse_args(args = None):
                 mode = "files"
                 continue
             if arg[0] != "-":
-                print u"ERROR: Se esperaba una opción parseando la linea de comando %d y encontramos un valor o fichero %s." % (i,repr(arg))
+                print("ERROR: Se esperaba una opción parseando la linea de comando %d y encontramos un valor o fichero %s." % (i,repr(arg)))
                 return None
             if arg[0:2] == "--":
                 curr_option = [arg[2:],None]
                 options.append(curr_option)
                 if '=' in arg:
-                    print u"ERROR: En el parametro %d se realiza una asignación (%s), y no está permitido. Use parámetros distintos." % (i,repr(arg))
+                    print("ERROR: En el parametro %d se realiza una asignación (%s), y no está permitido. Use parámetros distintos." % (i,repr(arg)))
                     return None
                 mode = "options-value"
                 continue
@@ -400,12 +400,12 @@ def parse_args(args = None):
         if mode == "files":
             files.append(arg)
             continue
-        print u"ERROR: Error no esperado en modo %s analizando parámetro %d %s" % (mode, i, repr(arg))
+        print("ERROR: Error no esperado en modo %s analizando parámetro %d %s" % (mode, i, repr(arg)))
         return None
                 
     for ichar in invalid_chars:
         if ichar in short_options: 
-            print u"ERROR: encontramos carácteres no válidos %s en las opciones cortas %s" % (repr(ichar), repr(short_options))               
+            print("ERROR: encontramos carácteres no válidos %s en las opciones cortas %s" % (repr(ichar), repr(short_options)))               
             return None
     kopts = []
     vopts = {}

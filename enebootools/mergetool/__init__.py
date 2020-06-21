@@ -62,7 +62,7 @@ from enebootools.mergetool import flpatchqs, flpatchpy, flpatchtest, flpatchmode
 
 
 class MergeToolInterface(EnebooToolsInterface):
-    module_description = u"Herramientas para la ayuda de resolución de conflictos de mezcla"
+    module_description = "Herramientas para la ayuda de resolución de conflictos de mezcla"
     def __init__(self, setup_parser = True):
         EnebooToolsInterface.__init__(self, False)
         self.patch_qs_rewrite = "warn"
@@ -84,90 +84,90 @@ class MergeToolInterface(EnebooToolsInterface):
         EnebooToolsInterface.setup_parser(self)
         self.parser.declare_option(
             name = "patch-qs-rewrite",
-            description = u"indica si al aplicar un parche de QS se debe sobreescribir o no las clases existentes ( reverse / predelete / yes / warn / no / abort ) ",
+            description = "indica si al aplicar un parche de QS se debe sobreescribir o no las clases existentes ( reverse / predelete / yes / warn / no / abort ) ",
             level = "action",
             variable = "VALUE", 
             call_function = self.set_patch_qs_rewrite
             )
         self.parser.declare_option(
             name = "patch-py-rewrite",
-            description = u"indica si al aplicar un parche de PY se debe sobreescribir o no las clases existentes ( reverse / predelete / yes / warn / no / abort ) ",
+            description = "indica si al aplicar un parche de PY se debe sobreescribir o no las clases existentes ( reverse / predelete / yes / warn / no / abort ) ",
             level = "action",
             variable = "VALUE", 
             call_function = self.set_patch_py_rewrite
             )
         self.parser.declare_option(
             name = "patch-test-rewrite",
-            description = u"indica si al aplicar un parche de PY_test se debe sobreescribir o no las clases existentes ( reverse / predelete / yes / warn / no / abort ) ",
+            description = "indica si al aplicar un parche de PY_test se debe sobreescribir o no las clases existentes ( reverse / predelete / yes / warn / no / abort ) ",
             level = "action",
             variable = "VALUE", 
             call_function = self.set_patch_test_rewrite
             )
         self.parser.declare_option(
             name = "patch-model-rewrite",
-            description = u"indica si al aplicar un parche de PY_model se debe sobreescribir o no las clases existentes ( reverse / predelete / yes / warn / no / abort ) ",
+            description = "indica si al aplicar un parche de PY_model se debe sobreescribir o no las clases existentes ( reverse / predelete / yes / warn / no / abort ) ",
             level = "action",
             variable = "VALUE", 
             call_function = self.set_patch_model_rewrite
             )
         self.parser.declare_option(
             name = "patch-name",
-            description = u"Indica el nombre del parche que se usará en lugar de autodetectarlo.",
+            description = "Indica el nombre del parche que se usará en lugar de autodetectarlo.",
             level = "action",
             variable = "NAME", 
             call_function = self.set_patch_name
             )
         self.parser.declare_option(
             name = "patch-dest",
-            description = u"Donde guardar un fichero de parche",
+            description = "Donde guardar un fichero de parche",
             level = "action",
             variable = "FILENAME", 
             call_function = self.set_patch_dest
             )
         self.parser.declare_option(
             name = "enable-diff-xml-search-move",
-            description = u"Activa la búsqueda de movimientos de bloques XML. Puede ser un poco más lento y puede generar parches incompatibles con otras herramientas.",
+            description = "Activa la búsqueda de movimientos de bloques XML. Puede ser un poco más lento y puede generar parches incompatibles con otras herramientas.",
             level = "action",
             call_function = self.enable_diff_xml_search_move
             )
         self.parser.declare_option(
             name = "patch-xml-style",
-            description = u"Usar otro estilo para generar parches XML (ver mergetools/etc/patch-styles/)",
+            description = "Usar otro estilo para generar parches XML (ver mergetools/etc/patch-styles/)",
             variable = "NAME", 
             level = "action",
             call_function = self.set_patch_xml_style
             )
         self.parser.declare_option(
             name = "patch-qs-style",
-            description = u"Usar otro estilo para generar parches QS (legacy|qsdir)",
+            description = "Usar otro estilo para generar parches QS (legacy|qsdir)",
             variable = "NAME", 
             level = "action",
             call_function = self.set_patch_qs_style
             )
         self.parser.declare_option(
             name = "patch-py-style",
-            description = u"Usar otro estilo para generar parches PY (legacy|pydir)",
+            description = "Usar otro estilo para generar parches PY (legacy|pydir)",
             variable = "NAME", 
             level = "action",
             call_function = self.set_patch_py_style
             )
         self.parser.declare_option(
             name = "patch-test-style",
-            description = u"Usar otro estilo para generar parches PY_test (legacy|testdir)",
+            description = "Usar otro estilo para generar parches PY_test (legacy|testdir)",
             variable = "NAME", 
             level = "action",
             call_function = self.set_patch_test_style
             )
         self.parser.declare_option(
             name = "patch-model-style",
-            description = u"Usar otro estilo para generar parches PY_model (legacy|modeldir)",
+            description = "Usar otro estilo para generar parches PY_model (legacy|modeldir)",
             variable = "NAME", 
             level = "action",
             call_function = self.set_patch_model_style
             )
         self.parser.declare_option(
             name = "clean-patch",
-            description = u"provoca que el parche generado sea de tipo limpieza",
+            description = "provoca que el parche generado sea de tipo limpieza",
             level = "action", # ( action | parser )
             variable = None, 
             call_function = self.set_clean_patch
@@ -177,7 +177,7 @@ class MergeToolInterface(EnebooToolsInterface):
             name = "build-project",
             args = ["buildxml"],
             options = [],
-            description = u"Lee el fichero $buildxml y realiza las operaciones que se determinan",
+            description = "Lee el fichero $buildxml y realiza las operaciones que se determinan",
             call_function = self.do_build_project,
             )
         self.build_project_action.set_help_arg(
@@ -188,7 +188,7 @@ class MergeToolInterface(EnebooToolsInterface):
             name = "folder-diff",
             args = ["patchdir","basedir","finaldir"],
             options = ["patch-name", "patch-qs-style", "patch-xml-style"],
-            description = u"Genera en $patchdir una colección de parches de la diferencia entre las carpetas $basedir y $finaldir",
+            description = "Genera en $patchdir una colección de parches de la diferencia entre las carpetas $basedir y $finaldir",
             call_function = self.do_folder_diff,
             )                
             
@@ -196,7 +196,7 @@ class MergeToolInterface(EnebooToolsInterface):
             name = "folder-diff",
             args = ["patchdir","basedir","finaldir"],
             options = ["patch-name", "patch-py-style", "patch-test-style", "patch-xml-style"],
-            description = u"Genera en $patchdir una colección de parches de la diferencia entre las carpetas $basedir y $finaldir",
+            description = "Genera en $patchdir una colección de parches de la diferencia entre las carpetas $basedir y $finaldir",
             call_function = self.do_folder_diff,
             )          
             
@@ -204,7 +204,7 @@ class MergeToolInterface(EnebooToolsInterface):
             name = "folder-diff",
             args = ["patchdir","basedir","finaldir"],
             options = ["patch-name", "patch-py-style", "patch-model-style", "patch-xml-style"],
-            description = u"Genera en $patchdir una colección de parches de la diferencia entre las carpetas $basedir y $finaldir",
+            description = "Genera en $patchdir una colección de parches de la diferencia entre las carpetas $basedir y $finaldir",
             call_function = self.do_folder_diff,
             )
         self.folder_diff_action.set_help_arg(
@@ -217,7 +217,7 @@ class MergeToolInterface(EnebooToolsInterface):
             name = "folder-patch",
             args = ["patchdir","basedir","finaldir"],
             options = ["patch-name"],
-            description = u"Aplica los parches en $patchdir a la carpeta $basedir y genera $finaldir",
+            description = "Aplica los parches en $patchdir a la carpeta $basedir y genera $finaldir",
             call_function = self.do_folder_patch,
             )
         self.folder_patch_action.set_help_arg(
@@ -229,7 +229,7 @@ class MergeToolInterface(EnebooToolsInterface):
         self.file_diff_action = self.parser.declare_action(
             name = "file-diff",
             args = ["ext","base","final"],
-            description = u"Genera un parche de fichero $ext de la diferencia entre el fichero $base y $final",
+            description = "Genera un parche de fichero $ext de la diferencia entre el fichero $base y $final",
             options = ['output-file','clean-patch'],
             call_function = self.do_file_diff,
             min_file_list = 0, # por defecto es 0
@@ -244,7 +244,7 @@ class MergeToolInterface(EnebooToolsInterface):
         self.file_patch_action = self.parser.declare_action( 
             name = "file-patch",
             args = ["ext","base","patch"],
-            description = u"Aplica un parche de fichero $ext especificado por $patch al fichero $base",
+            description = "Aplica un parche de fichero $ext especificado por $patch al fichero $base",
             options = ['output-file','patch-qs-rewrite','patch-py-rewrite','patch-test-rewrite',"enable-diff-xml-search-move","patch-xml-style"],
             call_function = self.do_file_patch,
             )
@@ -261,7 +261,7 @@ class MergeToolInterface(EnebooToolsInterface):
         self.file_patch_action = self.parser.declare_action( 
             name = "file-patch",
             args = ["ext","base","patch"],
-            description = u"Aplica un parche de fichero $ext especificado por $patch al fichero $base",
+            description = "Aplica un parche de fichero $ext especificado por $patch al fichero $base",
             options = ['output-file','patch-qs-rewrite','patch-py-rewrite','patch-model-rewrite',"enable-diff-xml-search-move","patch-xml-style"],
             call_function = self.do_file_patch,
             )
@@ -273,7 +273,7 @@ class MergeToolInterface(EnebooToolsInterface):
         self.file_check_action = self.parser.declare_action( 
             name = "file-check",
             args = ["check","filename"],
-            description = u"Analiza un fichero $filename en busca de errores usando el algoritmo de comprobación $check",
+            description = "Analiza un fichero $filename en busca de errores usando el algoritmo de comprobación $check",
             options = ['patch-dest'],
             call_function = self.do_file_check,
             )
@@ -284,28 +284,28 @@ class MergeToolInterface(EnebooToolsInterface):
         self.qs_extract_action = self.parser.declare_action(
             name = "qs-extract",
             args = ["final","classlist"],
-            description = u"Extrae del fichero $final las clases indicadas en $classlist",
+            description = "Extrae del fichero $final las clases indicadas en $classlist",
             options = ['output-file'],
             call_function = self.do_qs_extract,
             )
         self.py_extract_action = self.parser.declare_action(
             name = "py-extract",
             args = ["final","classlist"],
-            description = u"Extrae del fichero $final las clases indicadas en $classlist",
+            description = "Extrae del fichero $final las clases indicadas en $classlist",
             options = ['output-file'],
             call_function = self.do_py_extract,
             )
         self.test_extract_action = self.parser.declare_action(
             name = "test-extract",
             args = ["final","classlist"],
-            description = u"Extrae del fichero $final las clases indicadas en $classlist",
+            description = "Extrae del fichero $final las clases indicadas en $classlist",
             options = ['output-file'],
             call_function = self.do_test_extract,
             )
         self.model_extract_action = self.parser.declare_action(
             name = "model-extract",
             args = ["final","classlist"],
-            description = u"Extrae del fichero $final las clases indicadas en $classlist",
+            description = "Extrae del fichero $final las clases indicadas en $classlist",
             options = ['output-file'],
             call_function = self.do_model_extract,
             )
@@ -329,7 +329,7 @@ class MergeToolInterface(EnebooToolsInterface):
         self.qs_split_action = self.parser.declare_action(
             name="qs-split",
             args=["final"],
-            description=u"Separa el fichero $final en subficheros en una carpeta",
+            description="Separa el fichero $final en subficheros en una carpeta",
             options=[],
             call_function=self.do_qs_split,
         )
@@ -340,7 +340,7 @@ class MergeToolInterface(EnebooToolsInterface):
         self.qs_join_action = self.parser.declare_action(
             name="qs-join",
             args=["folder"],
-            description=u"Une la carpeta $folder en un fichero",
+            description="Une la carpeta $folder en un fichero",
             options=[],
             call_function=self.do_qs_join,
         )
@@ -351,7 +351,7 @@ class MergeToolInterface(EnebooToolsInterface):
         self.py_split_action = self.parser.declare_action(
             name="py-split",
             args=["final"],
-            description=u"Separa el fichero $final en subficheros en una carpeta",
+            description="Separa el fichero $final en subficheros en una carpeta",
             options=[],
             call_function=self.do_py_split,
         )
@@ -361,7 +361,7 @@ class MergeToolInterface(EnebooToolsInterface):
         self.test_split_action = self.parser.declare_action(
             name="test-split",
             args=["final"],
-            description=u"Separa el fichero $final en subficheros en una carpeta",
+            description="Separa el fichero $final en subficheros en una carpeta",
             options=[],
             call_function=self.do_test_split,
         )
@@ -371,7 +371,7 @@ class MergeToolInterface(EnebooToolsInterface):
         self.model_split_action = self.parser.declare_action(
             name="model-split",
             args=["final"],
-            description=u"Separa el fichero $final en subficheros en una carpeta",
+            description="Separa el fichero $final en subficheros en una carpeta",
             options=[],
             call_function=self.do_model_split,
         )
@@ -382,7 +382,7 @@ class MergeToolInterface(EnebooToolsInterface):
         self.py_join_action = self.parser.declare_action(
             name="py-join",
             args=["folder"],
-            description=u"Une la carpeta $folder en un fichero",
+            description="Une la carpeta $folder en un fichero",
             options=[],
             call_function=self.do_py_join,
         )
@@ -392,7 +392,7 @@ class MergeToolInterface(EnebooToolsInterface):
         self.test_join_action = self.parser.declare_action(
             name="test-join",
             args=["folder"],
-            description=u"Une la carpeta $folder en un fichero",
+            description="Une la carpeta $folder en un fichero",
             options=[],
             call_function=self.do_test_join,
         )
@@ -402,7 +402,7 @@ class MergeToolInterface(EnebooToolsInterface):
         self.model_join_action = self.parser.declare_action(
             name="model-join",
             args=["folder"],
-            description=u"Une la carpeta $folder en un fichero",
+            description="Une la carpeta $folder en un fichero",
             options=[],
             call_function=self.do_model_join,
         )
@@ -460,19 +460,19 @@ class MergeToolInterface(EnebooToolsInterface):
     def do_build_project(self, buildxml):
         try:
             return projectbuilder.build_xml_file(self, buildxml)
-        except Exception,e:
+        except Exception as e:
             self.exception(type(e).__name__,str(e))
     
     def do_folder_diff(self, basedir, finaldir, patchdir):
         try:
             return flpatchdir.diff_folder(self, basedir, finaldir, patchdir)
-        except Exception,e:
+        except Exception as e:
             self.exception(type(e).__name__,str(e))
 
     def do_folder_patch(self, basedir, finaldir, patchdir):
         try:
             return flpatchdir.patch_folder(self, basedir, finaldir, patchdir)
-        except Exception,e:
+        except Exception as e:
             self.exception(type(e).__name__,str(e))
 
     
@@ -498,8 +498,8 @@ class MergeToolInterface(EnebooToolsInterface):
                     return flpatchpy.diff_py(self, base, final)
             #if ext == 'XML': return flpatchxml.diff_xml(self,base,final)
             if ext == 'XML': return flpatchlxml.diff_lxml(self,base,final)
-            print "Unknown $ext %s" % (repr(ext))
-        except Exception,e:
+            print("Unknown $ext %s" % (repr(ext)))
+        except Exception as e:
             self.exception(type(e).__name__,str(e))
 
     def do_file_patch(self, ext, base, patch):
@@ -521,8 +521,8 @@ class MergeToolInterface(EnebooToolsInterface):
                 else:
                     return flpatchpy.patch_py(self, base, patch)
             if ext == 'XML': return flpatchlxml.patch_lxml(self,patch,base)
-            print "Unknown $ext %s" % (repr(ext))
-        except Exception,e:
+            print("Unknown $ext %s" % (repr(ext)))
+        except Exception as e:
             self.exception(type(e).__name__,str(e))
 
     def do_file_check(self, check, filename):
@@ -532,78 +532,78 @@ class MergeToolInterface(EnebooToolsInterface):
             if check == 'py-classes': return flpatchpy.check_py_classes(self,filename)
             if check == 'test-classes': return flpatchtest.check_test_classes(self,filename)
             if check == 'model-classes': return flpatchmodel.check_model_classes(self,filename)
-            print "Unknown $check %s" % (repr(check))
-        except Exception,e:
+            print("Unknown $check %s" % (repr(check)))
+        except Exception as e:
             self.exception(type(e).__name__,str(e))
             
     def do_qs_extract(self, final, classlist):
         try:
             return flpatchqs.extract_classes_qs(self,final, classlist)
-        except Exception,e:
+        except Exception as e:
             self.exception(type(e).__name__,str(e))
             
     def do_qs_split(self, final):
         try:
             return flpatchqs.split_qs(self,final)
-        except Exception,e:
+        except Exception as e:
             self.exception(type(e).__name__,str(e))
             
     def do_qs_join(self, folder):
         try:
             return flpatchqs.join_qs(self,folder)
-        except Exception,e:
+        except Exception as e:
             self.exception(type(e).__name__,str(e))
             
     def do_py_extract(self, final, classlist):
         try:
             return flpatchpy.extract_classes_py(self,final, classlist)
-        except Exception,e:
+        except Exception as e:
             self.exception(type(e).__name__,str(e))
             
     def do_py_split(self, final):
         try:
             return flpatchpy.split_py(self,final)
-        except Exception,e:
+        except Exception as e:
             self.exception(type(e).__name__,str(e))
             
     def do_py_join(self, folder):
         try:
             return flpatchpy.join_py(self,folder)
-        except Exception,e:
+        except Exception as e:
             self.exception(type(e).__name__,str(e))
             
     def do_test_extract(self, final, classlist):
         try:
             return flpatchtest.extract_classes_test(self,final, classlist)
-        except Exception,e:
+        except Exception as e:
             self.exception(type(e).__name__,str(e))
             
     def do_test_split(self, final):
         try:
             return flpatchtest.split_test(self,final)
-        except Exception,e:
+        except Exception as e:
             self.exception(type(e).__name__,str(e))
             
     def do_test_join(self, folder):
         try:
             return flpatchtest.join_test(self,folder)
-        except Exception,e:
+        except Exception as e:
             self.exception(type(e).__name__,str(e))
             
     def do_model_extract(self, final, classlist):
         try:
             return flpatchmodel.extract_classes_model(self,final, classlist)
-        except Exception,e:
+        except Exception as e:
             self.exception(type(e).__name__,str(e))
             
     def do_model_split(self, final):
         try:
             return flpatchmodel.split_model(self,final)
-        except Exception,e:
+        except Exception as e:
             self.exception(type(e).__name__,str(e))
             
     def do_model_join(self, folder):
         try:
             return flpatchmodel.join_model(self,folder)
-        except Exception,e:
+        except Exception as e:
             self.exception(type(e).__name__,str(e))

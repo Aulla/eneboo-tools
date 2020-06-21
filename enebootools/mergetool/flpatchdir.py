@@ -34,7 +34,7 @@ def _xf(x, cstring = False, **kwargs): #xml-format
     if cstring:
         return value
     else:
-        return unicode(value , kwargs['encoding'])
+        return str(value , kwargs['encoding'])
 
 class FolderApplyPatch(object):
     def __init__(self, iface, patchdir):
@@ -72,7 +72,7 @@ class FolderApplyPatch(object):
                             )
             self.tree = etree.parse(patch_file, self.parser)
             self.root = self.tree.getroot()
-        except IOError, e:
+        except IOError as e:
             self.root = None
             iface.error("No se pudo leer el parche: " + str(e))
     
@@ -81,7 +81,7 @@ class FolderApplyPatch(object):
         for action in self.root:
             
             actionname = action.tag
-            if not isinstance(actionname,basestring): continue
+            if not isinstance(actionname,str): continue
             if actionname.startswith("{"):
                 actionname = action.tag.split("}")[1]
             actionname = actionname.lower()
@@ -97,7 +97,7 @@ class FolderApplyPatch(object):
                 elif actionname == "patchxml": self.patch_xml(action, folder)
                 # TODO: actionname == "patchphp" 
                 else: self.iface.warn("** Se ha ignorado acción desconocida %s **" % repr(actionname))
-            except Exception, e:
+            except Exception as e:
                 self.iface.exception("ComputePatch", "No se pudo aplicar el parche para %s" % action.get("name"))
             
             tend = time.time()
@@ -211,7 +211,7 @@ class FolderApplyPatch(object):
         elif style in ['qsdir']:
             ret = flpatchqs.patch_qs_dir(self.iface,dst,src)
         else:
-            raise ValueError, "Estilo de parche QS desconocido: %s" % style
+            raise ValueError("Estilo de parche QS desconocido: %s" % style)
         self.iface.output = old_output 
         self.iface.verbosity = old_verbosity
         self.iface.patch_qs_style_name = old_style
@@ -405,7 +405,7 @@ class FolderCreatePatch(object):
                 elif actionname == "patchxml": ret = self.compute_patch_xml(action)
                 # TODO: actionname == "patchphp" 
                 else: self.iface.warn("** Se ha ignorado acción desconocida %s **" % repr(actionname))
-            except Exception, e:
+            except Exception as e:
                 self.iface.exception("ComputePatch", "No se pudo computar el parche para %s" % action.get("name"))
                 
             if ret == -1:
@@ -471,7 +471,7 @@ class FolderCreatePatch(object):
         elif self.iface.patch_qs_style_name in ['qsdir']:
             ret = flpatchqs.diff_qs_dir(self.iface,base,final)
         else:
-            raise ValueError, "patch_qs_style_name no reconocido: %s" % self.iface.patch_qs_style_name
+            raise ValueError("patch_qs_style_name no reconocido: %s" % self.iface.patch_qs_style_name)
         self.iface.output = old_output 
         self.iface.verbosity = old_verbosity
         if ret == -1:
@@ -506,7 +506,7 @@ class FolderCreatePatch(object):
 
 
 def diff_folder(iface, basedir, finaldir, patchdir, inplace = False):
-    iface.debug(u"Folder Diff $basedir:%s $finaldir:%s $patchdir:%s" % (basedir,finaldir,patchdir))
+    iface.debug("Folder Diff $basedir:%s $finaldir:%s $patchdir:%s" % (basedir,finaldir,patchdir))
     # patchdir no debe existir
     parent_patchdir = os.path.abspath(os.path.join(patchdir,".."))
     if not os.path.exists(parent_patchdir):
@@ -534,7 +534,7 @@ def diff_folder(iface, basedir, finaldir, patchdir, inplace = False):
     
     
 def patch_folder(iface, basedir, finaldir, patchdir):
-    iface.debug(u"Folder Patch $basedir:%s $finaldir:%s $patchdir:%s" % (basedir,finaldir,patchdir))
+    iface.debug("Folder Patch $basedir:%s $finaldir:%s $patchdir:%s" % (basedir,finaldir,patchdir))
     if not os.path.exists(basedir):
         iface.error("La ruta %s no existe" % basedir)
         return

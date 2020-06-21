@@ -5,8 +5,8 @@ from lxml import etree
 
 from enebootools.lib.utils import one, find_files, get_max_mtime, read_file_list
 
-from featureconfig import loadFeatureConfig
-from databasemodels import KnownObjects
+from .featureconfig import loadFeatureConfig
+from .databasemodels import KnownObjects
 
 class BaseObject(object):
     _by_name = {}
@@ -23,11 +23,11 @@ class BaseObject(object):
         try:            
             self.setup()
         except Exception:
-            iface.error(u"Error al intentar leer y configurar el objeto de base de datos. Se estaba configurando un objeto tipo <%s> y se solicitó el fichero '%s'" % (self.__class__.__name__, self.fullfilename))
+            iface.error("Error al intentar leer y configurar el objeto de base de datos. Se estaba configurando un objeto tipo <%s> y se solicitó el fichero '%s'" % (self.__class__.__name__, self.fullfilename))
             raise
 
-        self.__class__._by_name[ ( self.__class__.__name__ , unicode(self.name)) ] = self
-        self.__class__._by_relpath[ ( self.__class__.__name__ , unicode(obj.relpath)) ] = self
+        self.__class__._by_name[ ( self.__class__.__name__ , str(self.name)) ] = self
+        self.__class__._by_relpath[ ( self.__class__.__name__ , str(obj.relpath)) ] = self
         self.__class__._by_formal_name[ ( self.__class__.__name__ , self.formal_name()) ] = self
     
     def get_info(self):
@@ -35,23 +35,23 @@ class BaseObject(object):
         return self.info
 
     def formal_name(self):
-        return unicode(self.obj.relpath)
+        return str(self.obj.relpath)
     
     @classmethod 
     def by_name(self, name):
-        return self._by_name.get(( self.__name__ , unicode(name)), None)
+        return self._by_name.get(( self.__name__ , str(name)), None)
         
     @classmethod 
     def by_formal_name(self, name):
-        return self._by_formal_name.get(( self.__name__ , unicode(name)), None)
+        return self._by_formal_name.get(( self.__name__ , str(name)), None)
         
     @classmethod 
     def by_relpath(self, relpath):
-        return self._by_relpath.get(( self.__name__ , unicode(relpath)), None)
+        return self._by_relpath.get(( self.__name__ , str(relpath)), None)
         
     @classmethod 
     def items(self):
-        return [ v for k,v in self._by_name.items() if k[0] == self.__name__ ]
+        return [ v for k,v in list(self._by_name.items()) if k[0] == self.__name__ ]
         
     @classmethod 
     def find(self, name):
@@ -62,7 +62,7 @@ class BaseObject(object):
         
     @classmethod 
     def cls_finish_setup(self):
-        for k,obj in self._by_name.items():
+        for k,obj in list(self._by_name.items()):
             cname, name = k
             if cname != self.__name__: continue
             obj.finish_setup()
@@ -149,7 +149,7 @@ class ModuleObject(BaseObject):
         self.module_areaname = one(self.root.xpath("areaname/text()"))
         self.required_modules = self.root.xpath("dependencies/dependency/text()")
         self.required_features = []
-        self.iface.debug2(u"Se ha parseado el módulo %s" % self.name)
+        self.iface.debug2("Se ha parseado el módulo %s" % self.name)
         
     def get_info(self):
         if self.info: return self.info
@@ -171,7 +171,7 @@ class FeatureObject(BaseObject):
 
         self.patch_series = read_file_list(self.fullpath, "conf/patch_series", errlog = self.iface.warn)
         
-        self.iface.debug2(u"Se ha parseado la funcionalidad %s" % self.name)
+        self.iface.debug2("Se ha parseado la funcionalidad %s" % self.name)
         
     def get_patch_list(self):
         patch_list = read_file_list(self.fullpath, "conf/patch_series", errlog=self.iface.warn)
@@ -210,7 +210,7 @@ class FeatureObject(BaseObject):
         binstr.set("dstfolder", "build/base")
         if self.dstfolder:
             binstr.set("dstfolder", self.dstfolder)
-        etree.SubElement(binstr,"Message", text=u"Copiando módulos . . .")
+        etree.SubElement(binstr,"Message", text="Copiando módulos . . .")
         for modulename in self._get_full_required_modules():
             module = ModuleObject.find(modulename)
             cpfolder = etree.SubElement(binstr,"CopyFolderAction")
@@ -222,7 +222,7 @@ class FeatureObject(BaseObject):
             feature = FeatureObject.find(featurename)
             patch_list = feature.get_patch_list()
             if len(patch_list) == 0: self.iface.warn("No encontramos parches para aplicar en %s" % featurename)
-            etree.SubElement(binstr,"Message", text=u"Aplicando extensión %s . . ." % featurename)
+            etree.SubElement(binstr,"Message", text="Aplicando extensión %s . . ." % featurename)
             for patchdir in patch_list:
                 apatch = etree.SubElement(binstr,"ApplyPatchAction")
                 srcpath = os.path.join(feature.fullpath,"patches",patchdir)
@@ -418,8 +418,7 @@ class Singleton(type):
             cls.__instance = type.__call__(cls, *args,**kw)
         return cls.__instance
         
-class ObjectIndex(object):
-    __metaclass__ = Singleton
+class ObjectIndex(object, metaclass=Singleton):
     def __init__(self, iface):
         self.iface = iface
         self.analyze_done = False
@@ -442,7 +441,7 @@ class ObjectIndex(object):
         if self.file_index: return self.file_index
         self.file_index = {}
         
-        for kobj in ModuleObject.items() + FeatureObject.items():
+        for kobj in list(ModuleObject.items()) + list(FeatureObject.items()):
             index = kobj.get_info()
             fname = "%s" % (kobj.formal_name())
             ftype = "module" if kobj.type == "mod" else "feature"
@@ -476,10 +475,10 @@ class ObjectIndex(object):
         ftr = FeatureObject(self.iface, obj)
 
     def modules(self): 
-        return ModuleObject.items()
+        return list(ModuleObject.items())
         
     def features(self): 
-        return FeatureObject.items()
+        return list(FeatureObject.items())
         
     def get_patch_name(self, func, default = False):
         feature = FeatureObject.find(func)

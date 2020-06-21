@@ -1,6 +1,6 @@
 # coding: UTF8
-import ConfigParser
-import parsers
+import configparser
+from . import parsers
 
 
 import traceback
@@ -31,25 +31,25 @@ class ConfigReader:
         self.do_reload()
         
     def do_reload(self):
-        self.configini = ConfigParser.RawConfigParser()
+        self.configini = configparser.RawConfigParser()
         ok_list = self.configini.read(self.filename_list)
         if set(ok_list) != set(self.filename_list):
-            print "WARN: Uno o mas ficheros no se pudieron leer:", ", ".join([str(filename) for filename in set(self.filename_list) - set(ok_list)])
+            print("WARN: Uno o mas ficheros no se pudieron leer:", ", ".join([str(filename) for filename in set(self.filename_list) - set(ok_list)]))
 
             if len(ok_list) == 0: 
-                print "FATAL: No se ha podido leer ningún fichero de configuracion!"
+                print("FATAL: No se ha podido leer ningún fichero de configuracion!")
                 sys.exit(1)
             
     def loadSection(self,section):
         options = []
         if not self.configini.has_section(section) and self.saveConfig:
-            print "INFO: agregando la seccion %s" % repr(section)
+            print("INFO: agregando la seccion %s" % repr(section))
             self.configini.add_section(section)
             
         if self.configini.has_section(section):            
             options = self.configini.options(section)
         else:                
-            print "WARN: No se encontró la seccion %s" % repr(section)
+            print("WARN: No se encontró la seccion %s" % repr(section))
             self.errors = True
     
         opvalues = {}
@@ -62,8 +62,8 @@ class ConfigReader:
 
 class Parameter:
     def __init__(self, parent = None, name = None, default = None, parser = None, required = False):
-        if name in parent._params: raise AttributeError, "Parameter %s already included" % name
-        if hasattr(self,name): raise AttributeError, "Parameter %s already exists in class" % name
+        if name in parent._params: raise AttributeError("Parameter %s already included" % name)
+        if hasattr(self,name): raise AttributeError("Parameter %s already exists in class" % name)
         parent._params[name] = self
         self.name = name
         self.default = default
@@ -95,19 +95,19 @@ class Parameter:
         if self.defined == False:
             configreader = self.parent.configReader
             if not configreader.saveConfig and self.required: 
-                raise ValueError, "Parameter '%s' requires a value" % self.name
+                raise ValueError("Parameter '%s' requires a value" % self.name)
             else:
                 self.setDefault()
                 if not configreader.saveConfig:
                     configreader.errors = True
-                    print "WARN: Asumiendo valor %s para parametro %s (seccion %s)" % (repr(self.getValue()),repr(self.name), repr(self.parent._sectionname))
+                    print("WARN: Asumiendo valor %s para parametro %s (seccion %s)" % (repr(self.getValue()),repr(self.name), repr(self.parent._sectionname)))
                 else:
-                    print "INFO: Escribiendo valor %s para parametro %s (seccion %s)" % (repr(self.getValue()),repr(self.name), repr(self.parent._sectionname))
+                    print("INFO: Escribiendo valor %s para parametro %s (seccion %s)" % (repr(self.getValue()),repr(self.name), repr(self.parent._sectionname)))
 
         x = getattr(self.parent,self.name)
         px = self.parser(x)
         if x != px:
-            raise ValueError, "Parameter '%s' value %s parses to a different value %s!" % (self.name,repr(x),repr(px))
+            raise ValueError("Parameter '%s' value %s parses to a different value %s!" % (self.name,repr(x),repr(px)))
         
     
 
@@ -150,10 +150,10 @@ class AutoConfigTemplate:
             
                 default = cline
                 if parser not in self.configReader.parser_list:
-                    raise NameError, "Parser type %s unknown" % repr(parser)
+                    raise NameError("Parser type %s unknown" % repr(parser))
                 self.addParam( name = name, default = default, parser = self.configReader.parser_list[parser], required = required)
             except Exception:
-                print traceback.format_exc()
+                print(traceback.format_exc())
             
             
                 
@@ -166,13 +166,13 @@ class AutoConfigTemplate:
     def setParam(self,name,value):
         if name not in self._params:
             if self.debug:
-                print "WARN: Opcion %s en seccion %s no reconocida" % (repr(name),repr(self._sectionname))
+                print("WARN: Opcion %s en seccion %s no reconocida" % (repr(name),repr(self._sectionname)))
             return False
         try:
             self._params[name].setValue(value)
         except Exception:
-            print "ERROR: Opcion %s en seccion %s ocurrio el siguiente error:" % (repr(name),repr(self._sectionname))
-            print traceback.format_exc(0)
+            print("ERROR: Opcion %s en seccion %s ocurrio el siguiente error:" % (repr(name),repr(self._sectionname)))
+            print(traceback.format_exc(0))
             return False
             
         
@@ -180,23 +180,23 @@ class AutoConfigTemplate:
     def loadSection(self,section, autoParse = True):
         self._sectionname = section
         opvalues = self.configReader.loadSection(section)
-        for option,value in opvalues.iteritems():
+        for option,value in opvalues.items():
             self.setParam(option,value)
         if autoParse: 
             pv = self.parseValues()
             if not pv:
                 self.configReader.fatalErrors = True
-                raise ValueError, "FATAL: Unable to load section %s" % repr(section)
+                raise ValueError("FATAL: Unable to load section %s" % repr(section))
                 
     
     def parseValues(self):
         returnValue = True
-        for name, param in self._params.iteritems():
+        for name, param in self._params.items():
             try:
                 param.parseValue()
             except Exception:
-                print "ERROR: Opcion %s en seccion %s ocurrio el siguiente error:" % (repr(name),repr(self._sectionname))
-                print traceback.format_exc(0)
+                print("ERROR: Opcion %s en seccion %s ocurrio el siguiente error:" % (repr(name),repr(self._sectionname)))
+                print(traceback.format_exc(0))
                 returnValue = False
         return returnValue 
     

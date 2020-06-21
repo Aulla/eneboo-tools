@@ -1,5 +1,5 @@
 # encoding: UTF-8
-u"""
+"""
     Módulo de cálculo y aplicación de parches QS emulando flpatch.
 """
 """
@@ -20,7 +20,7 @@ u"""
     
 """
 
-import re, os.path, difflib, math, itertools, shutil, sys, StringIO
+import re, os.path, difflib, math, itertools, shutil, sys, io
 import pprint, subprocess
 pp = pprint.PrettyPrinter(indent=4)
 
@@ -61,7 +61,7 @@ def latin1_to_ascii (unicrap):
 
     r = ''
     for i in unicrap:
-        if xlate.has_key(ord(i)):
+        if ord(i) in xlate:
             r += xlate[ord(i)]
         elif ord(i) >= 0x80:
             pass
@@ -115,9 +115,9 @@ def qsclass_reader(iface, file_name, file_lines):
                             heu_cnames.append(heu_cname)
                         if heu_cname != cname: other_functions.append(l)
                 if len(heu_cnames) > 1:
-                    iface.error(u"En la clase %s existen funciones para diferentes clases (file: %s)" % (cname,file_name))
+                    iface.error("En la clase %s existen funciones para diferentes clases (file: %s)" % (cname,file_name))
                     for l in other_functions:
-                        iface.error(u">>>" + l)
+                        iface.error(">>>" + l)
                     
                     if cname in heu_cnames: heu_cname = cname
                     
@@ -129,9 +129,9 @@ def qsclass_reader(iface, file_name, file_lines):
                 heu_line = "/** @%s %s */" % (heu_dtype, heu_cname)
                 myline = "/** @%s %s */" % (dtype, cname)
                 if '_' in cname:
-                    iface.info(u"La autodetección de contenido de bloques no funciona con clases que contengan el carácter de guión bajo como %r" % cname)
+                    iface.info("La autodetección de contenido de bloques no funciona con clases que contengan el carácter de guión bajo como %r" % cname)
                 elif heu_line != myline:
-                    iface.error(u"La definición de bloque %r no corresponde con el contenido (file: %s:%d) ... asumiendo '%s'" % (line2.strip(),file_name,n, heu_line))
+                    iface.error("La definición de bloque %r no corresponde con el contenido (file: %s:%d) ... asumiendo '%s'" % (line2.strip(),file_name,n, heu_line))
                     dtype, cname = heu_dtype, heu_cname
                     classpatch += ["@@ -%d,1 +%d,1 @@" % (n+1,n+1)]
                     classpatch += ["-%s" % line2.rstrip()]
@@ -141,12 +141,12 @@ def qsclass_reader(iface, file_name, file_lines):
             npos = len(linelist)
             if dtype == "class_declaration":
                 if cname in classes:
-                    iface.error(u"Hay dos bloques 'class_declaration' para la clase %s (file: %s) ... asumiendo 'class_definiton'" % (cname,file_name))
+                    iface.error("Hay dos bloques 'class_declaration' para la clase %s (file: %s) ... asumiendo 'class_definiton'" % (cname,file_name))
                     dtype = "class_definition"
                 else:
                     classdecl = extract_class_decl_info(iface, class_lines)
                     if cname not in classdecl:
-                        iface.error(u"Bloque 'class_declaration' con nombre erroneo clase %s no existe en el bloque (file: %s)" % (cname,file_name))
+                        iface.error("Bloque 'class_declaration' con nombre erroneo clase %s no existe en el bloque (file: %s)" % (cname,file_name))
                         possible_cnames = difflib.get_close_matches(cname, classdecl, 1)
                         if possible_cnames:
                             cname = possible_cnames[0]
@@ -155,15 +155,15 @@ def qsclass_reader(iface, file_name, file_lines):
                     
             if dtype == "class_definition":
                 if cname in defidx:
-                    iface.error(u"Hay dos bloques 'class_definition' para la clase %s (file: %s)" % (cname,file_name))
+                    iface.error("Hay dos bloques 'class_definition' para la clase %s (file: %s)" % (cname,file_name))
                 else:
                     defidx[cname] = npos
                     if cname not in classes:
-                        iface.error(u"Bloque 'class_definition' huérfano para la clase %s (file: %s)" % (cname,file_name))
+                        iface.error("Bloque 'class_definition' huérfano para la clase %s (file: %s)" % (cname,file_name))
             elif dtype == "delete_class":
                 # Clase a borrar cuando se aplique el parche.
                 if cname in delclasses:
-                    iface.error(u"Hay dos bloques 'delete_class' para la clase %s (file: %s)" % (cname,file_name))
+                    iface.error("Hay dos bloques 'delete_class' para la clase %s (file: %s)" % (cname,file_name))
                 else:
                     delclasses.append(cname)
             elif dtype == "file":
@@ -172,7 +172,7 @@ def qsclass_reader(iface, file_name, file_lines):
             elif dtype == "class_declaration":
                 pass 
             else:
-                iface.warn(u"Tipo de identificador doxygen no reconocido %s (file: %s)" % (repr(dtype),file_name))
+                iface.warn("Tipo de identificador doxygen no reconocido %s (file: %s)" % (repr(dtype),file_name))
                 continue
                 
             found = [ dtype , cname, n ]
@@ -224,7 +224,7 @@ def extract_class_decl_info(iface,text_lines):
 def file_reader(filename):
     try:
         f1 = open(filename, "r")
-    except IOError,e: 
+    except IOError as e: 
         raise ValueError("File Not Found: %s" % repr(filename))
         return
     name = os.path.basename(filename)
@@ -232,11 +232,11 @@ def file_reader(filename):
     
 
 def diff_qs(iface, base, final):
-    iface.debug(u"Procesando Diff QS $base:%s -> $final:%s" % (base, final))
+    iface.debug("Procesando Diff QS $base:%s -> $final:%s" % (base, final))
     nbase, flbase = file_reader(base)
     nfinal, flfinal = file_reader(final)
     if flbase is None or flfinal is None:
-        iface.info(u"Abortando Diff QS por error al abrir los ficheros")
+        iface.info("Abortando Diff QS por error al abrir los ficheros")
         return
     clbase = qsclass_reader(iface, base, flbase)
     clfinal = qsclass_reader(iface, final, flfinal)
@@ -246,32 +246,32 @@ def diff_qs(iface, base, final):
     created_classes = [ clname for clname in clfinal['classes'] if clname in created_classes_s ]
     
     if len(created_classes) == 0 and len(deleted_classes) == 0:
-        iface.warn(u"No se han detectado clases nuevas ni viejas. El parche quedará vacío. ($final:%s)" % (final))
+        iface.warn("No se han detectado clases nuevas ni viejas. El parche quedará vacío. ($final:%s)" % (final))
         return -1
         
     iface.debug2r(created = created_classes, deleted = deleted_classes)
     return extract_classes(iface,clfinal,flfinal,created_classes, deleted_classes)
 
 def extract_classes_qs(iface, final, classlist):
-    if isinstance(classlist, basestring):
+    if isinstance(classlist, str):
         classlist = classlist.split(",")
-    iface.debug(u"Extrayendo clases QS $final:%s $classlist:%s" % (final,",".join(classlist)))
+    iface.debug("Extrayendo clases QS $final:%s $classlist:%s" % (final,",".join(classlist)))
     nfinal, flfinal = file_reader(final)
     if flfinal is None:
-        iface.info(u"Abortando por error al abrir los ficheros")
+        iface.info("Abortando por error al abrir los ficheros")
         return
     clfinal = qsclass_reader(iface, final, flfinal)
 
     if len(classlist) == 0:
-        iface.warn(u"No se han pasado clases. El parche quedará vacío. ($final:%s)" % (final))
+        iface.warn("No se han pasado clases. El parche quedará vacío. ($final:%s)" % (final))
         
     return extract_classes(iface,clfinal,flfinal,classlist)
     
 def split_qs_old(iface, final):
-    iface.debug(u"Separando fichero QS %s . . . " % (final))
+    iface.debug("Separando fichero QS %s . . . " % (final))
     nfinal, flfinal = file_reader(final)
     if flfinal is None:
-        iface.info(u"Abortando por error al abrir los ficheros")
+        iface.info("Abortando por error al abrir los ficheros")
         return
     flfinal = [ line.replace("\t","        ") for line in flfinal ]
     clfinal = qsclass_reader(iface, final, flfinal)
@@ -311,10 +311,10 @@ def split_qs_old(iface, final):
         
     
 def split_qs(iface, final, create_folder = True):
-    iface.debug(u"Separando fichero QS %s . . . " % (final))
+    iface.debug("Separando fichero QS %s . . . " % (final))
     nfinal, flfinal = file_reader(final)
     if flfinal is None:
-        iface.info(u"Abortando por error al abrir los ficheros")
+        iface.info("Abortando por error al abrir los ficheros")
         return
     flfinal = [ line.replace("\t","        ") for line in flfinal ]
     clfinal = qsclass_reader(iface, final, flfinal)
@@ -332,7 +332,7 @@ def split_qs(iface, final, create_folder = True):
         if create_folder:
             f = open(os.path.join(dstfolder,name),"w")
         else:
-            f = StringIO.StringIO()
+            f = io.StringIO()
             dstfolder[name] = f
         return f
 
@@ -396,7 +396,7 @@ class PatchReader(object):
             self.name, self.file = file_reader(self.filename)
 
         if self.file is None:
-            iface.info(u"Abortando por error al abrir los ficheros")
+            iface.info("Abortando por error al abrir los ficheros")
             return
         self.classes = qsclass_reader(iface, self.filename, self.file)
         self.classdict = extract_class_decl_info(iface, self.file) 
@@ -418,12 +418,12 @@ class PatchReader(object):
         f2.write("\n".join(self.file[linen:]) + "\n")
         
     def write_decl(self, f2):
-        for classname, nblock1 in self.classes['decl'].items():
+        for classname, nblock1 in list(self.classes['decl'].items()):
             stype, clname, line1, linen = self.classes['list'][nblock1]
             f2.write("\n".join(self.file[line1:linen]) + "\n")
             
     def write_def(self, f2):
-        for classname, nblock1 in self.classes['def'].items():
+        for classname, nblock1 in list(self.classes['def'].items()):
             stype, clname, line1, linen = self.classes['list'][nblock1]
             f2.write("\n".join(self.file[line1:linen]) + "\n")
             
@@ -437,7 +437,7 @@ def join_qs(iface, dstfolder):
         head, foldername = os.path.split(dstfolder)
         filename = foldername.replace("-splitted",".joined") + ".qs"
         filepath = os.path.join(head,filename)
-        iface.debug(u"Uniendo carpeta %s . . . " % (dstfolder))
+        iface.debug("Uniendo carpeta %s . . . " % (dstfolder))
         f1 = open(filepath, "w")
 
     def openr(folder, filename):
@@ -451,8 +451,8 @@ def join_qs(iface, dstfolder):
     f1r = openr(dstfolder,"patch_series")
     classlist = [ cname.strip() for cname in f1r if len(cname.strip()) ]
     if not classlist:
-        iface.error(u"Lista de clases disponibles para unir vacía (operación abortada)" )
-        iface.error(u"Contenido fichero: %r" % openr(dstfolder,"patch_series").read() )
+        iface.error("Lista de clases disponibles para unir vacía (operación abortada)" )
+        iface.error("Contenido fichero: %r" % openr(dstfolder,"patch_series").read() )
         return
     f1r.close()
         
@@ -479,12 +479,12 @@ def join_qs(iface, dstfolder):
         
     p0.write_tail(f1)
     #f1.close()
-    iface.info(u"El fichero %s ha sido escrito correctamente." % (filename))
+    iface.info("El fichero %s ha sido escrito correctamente." % (filename))
         
     
     
 def patch_qs_dir(iface, base, patch):
-    iface.debug(u"Procesando Patch sobre carpeta QS $base:%s + $patch:%s" % (base, patch))
+    iface.debug("Procesando Patch sobre carpeta QS $base:%s + $patch:%s" % (base, patch))
     base_filename = base
     if os.path.isfile(base):
         base = split_qs(iface, base, False)
@@ -492,7 +492,7 @@ def patch_qs_dir(iface, base, patch):
     def openr(folder, filename):
         if type(folder) is dict:
             if filename not in folder:
-                iface.error("Buscando fichero inexistente %s, candidatos %s" % (filename, ", ".join(folder.keys())))
+                iface.error("Buscando fichero inexistente %s, candidatos %s" % (filename, ", ".join(list(folder.keys()))))
                 return None
             f = folder[filename]
             f.seek(0)
@@ -540,7 +540,7 @@ def patch_qs_dir(iface, base, patch):
     
     def opendst(name):
         if type(destpath) is dict:
-            f = StringIO.StringIO()
+            f = io.StringIO()
             destpath[name] = f
         else:
             f = open(os.path.join(destpath,name),"w")
@@ -555,7 +555,7 @@ def patch_qs_dir(iface, base, patch):
         for code, line in sec_rmcls[None]:
             if code == "- ": 
                 try: patch_series.remove(line)
-                except ValueError: iface.info(u"La clase %s iba a ser eliminada del fichero, pero no la encontramos" % line)
+                except ValueError: iface.info("La clase %s iba a ser eliminada del fichero, pero no la encontramos" % line)
 
     iface.debug2("Classes2: %s" %  ",".join(patch_series))
     sec_mvcls = sections.get("move-classes")
@@ -565,11 +565,11 @@ def patch_qs_dir(iface, base, patch):
             if len(line) == 0: continue
             match = re.match("^([\w,]+) \((\w+)\) ([\w,]+)", line)
             if not match:
-                iface.error(u"Línea de movimiento de clases malformada: %s" % (repr(line)))
+                iface.error("Línea de movimiento de clases malformada: %s" % (repr(line)))
                 continue
             group1, relation, group2 = match.groups()
             if relation not in ['before']:
-                iface.error(u"Línea de movimiento con relación desconocida: %s" % (repr(relation)))
+                iface.error("Línea de movimiento con relación desconocida: %s" % (repr(relation)))
                 continue
             group1 = group1.split(",")
             group2 = group2.split(",")
@@ -617,7 +617,7 @@ def patch_qs_dir(iface, base, patch):
                     add_known( code , line )
             if code == "+ ":
                 if line in patch_series:
-                    iface.warn(u"TODO: Add Classes -  Clase %s ya existía" % line)
+                    iface.warn("TODO: Add Classes -  Clase %s ya existía" % line)
                     continue
                 
                 add_known( code , line )
@@ -700,7 +700,7 @@ def patch_qs_dir(iface, base, patch):
             
     sec_patchcls = sections.get("patch-class")
     if sec_patchcls:
-        for cls, list1 in sec_patchcls.items():
+        for cls, list1 in list(sec_patchcls.items()):
             if cls not in patch_series:
                 iface.warn("No se parchea clase inexistente %s" % cls)
                 continue
@@ -718,7 +718,7 @@ def patch_qs_dir(iface, base, patch):
             
     sec_addedcls = sections.get("added-class")
     if sec_addedcls:
-        for cls, list1 in sec_addedcls.items():
+        for cls, list1 in list(sec_addedcls.items()):
             filename = "%s.qs" % cls
             iface.debug("Creando %s. . ." % filename)
             fw1 = opendst(filename)
@@ -733,7 +733,7 @@ def patch_qs_dir(iface, base, patch):
     return True    
 
 def unicode2(t):
-    if type(t) is unicode: return t
+    if type(t) is str: return t
     if type(t) is not str:
         t = str(t)
     return t.decode("UTF-8","replace")
@@ -743,7 +743,7 @@ def patch_class_advanced(orig,patch, filename="unknown"):
     # 1.. separar el parche en "hunks" (bloques)
     blocks = []
     block = []
-    print filename
+    print(filename)
     for n,(code, line) in enumerate(patch):
         if code == "==":
             if block: 
@@ -799,23 +799,23 @@ def patch_class_advanced(orig,patch, filename="unknown"):
         minb = min(same_lines)
         maxb = max(same_lines) + 1
         relok = int(len(same_lines) * 100.0 / float(maxb-minb))
-        print "RelOk:", relok, "lenlines:", len(same_lines), "lenbytes:", lenbtotal
+        print("RelOk:", relok, "lenlines:", len(same_lines), "lenbytes:", lenbtotal)
         c_block = orig_[minb-1:maxb]
         if relok < 30:
-            print "Clin:" , same_lines
-            print
-            print " ::: BASE"
-            print "\n".join(orig_block)
-            print " ::: REMOTE"
-            print "\n".join(new_block)
-            print " ::: LOCAL"
+            print("Clin:" , same_lines)
+            print()
+            print(" ::: BASE")
+            print("\n".join(orig_block))
+            print(" ::: REMOTE")
+            print("\n".join(new_block))
+            print(" ::: LOCAL")
             for n, line in enumerate(orig_):
                 ch = " "
                 if n < minb: ch = "<"
                 if n >= maxb: ch = ">"
                 
-                print "%04d" % n, ch, line
-            print " ----"
+                print("%04d" % n, ch, line)
+            print(" ----")
         
         # Reanalizar el parche::
         d = difflib.Differ()
@@ -857,7 +857,7 @@ def patch_class_advanced(orig,patch, filename="unknown"):
                 if n[1] not in ('  ', '- ', '+ '): continue
                 test_file[tuple(list(n)[:-1])] = n[-1]
                 
-            for x in test_file.keys():
+            for x in list(test_file.keys()):
                 n, code, name, sn = x
                 altname = "A" if name == "B" else "B"
                 if code == "- ":
@@ -891,7 +891,7 @@ def patch_class_advanced(orig,patch, filename="unknown"):
             last_seen_a = -200
             last_seen_b = -200
             min_space = 100
-            for k, line in sorted(test_file.items(), key=translate_keys):
+            for k, line in sorted(list(test_file.items()), key=translate_keys):
                 nline, code = k[0],k[2]
                 if code == "A": last_seen_a = nline
                 if code == "B": last_seen_b = nline
@@ -902,7 +902,7 @@ def patch_class_advanced(orig,patch, filename="unknown"):
                 basefile = "/tmp/%s.base.tmp" % filename
                 remotefile = "/tmp/%s.base.tmp" % filename
                 localfile = "/tmp/%s.base.tmp" % filename
-                print repr(basefile), repr(remotefile)
+                print(repr(basefile), repr(remotefile))
                 open("/tmp/base.tmp","w").write("\n".join(orig_block))
                 open("/tmp/remote.tmp","w").write("\n".join(new_block))
                 open("/tmp/local.tmp","w").write("\n".join(c_block))
@@ -988,9 +988,9 @@ def patch_class_advanced(orig,patch, filename="unknown"):
         
     
 def diff_qs_dir(iface, base, final):
-    iface.debug(u"Procesando Diff de carpetas QS $base:%s -> $final:%s" % (base, final))
+    iface.debug("Procesando Diff de carpetas QS $base:%s -> $final:%s" % (base, final))
     
-    iface.debug(u"Comparando clases en patch_series . . .")
+    iface.debug("Comparando clases en patch_series . . .")
     if os.path.isfile(base):
         base = split_qs(iface, base, False)
     if os.path.isfile(final):
@@ -1144,10 +1144,10 @@ def diff_qs_dir(iface, base, final):
 def get_move_actions(cln1, names):
     actions = []
     cln = cln1[:]
-    for i in reversed(range(len(cln))):
+    for i in reversed(list(range(len(cln)))):
         if i == 0: break
         if cln[i-1] < cln[i]: continue
-        for j in reversed(range(-1,i)):
+        for j in reversed(list(range(-1,i))):
             if j < 0 or cln[j] < cln[i]: break
 
         beforen2 = cln[j+1:i]
@@ -1181,7 +1181,7 @@ def extract_classes(iface,clfinal,flfinal,classes2extract, classes2delete = []):
     for clname in classes2extract:
         block_decl = clfinal['decl'].get(clname,None)
         if block_decl is None:
-            iface.error(u"Se esperaba una declaración de clase para %s." % clname)
+            iface.error("Se esperaba una declaración de clase para %s." % clname)
             continue
         dtype, clname, idx1, idx2 = clfinal['list'][block_decl]
         iface.debug2r(exported_block=clfinal['list'][block_decl])
@@ -1205,7 +1205,7 @@ def extract_classes(iface,clfinal,flfinal,classes2extract, classes2delete = []):
     for clname in classes2extract:
         block_def = clfinal['def'].get(clname,None)
         if block_def is None:
-            iface.debug(u"Se esperaba una definición de clase para %s." % clname)
+            iface.debug("Se esperaba una definición de clase para %s." % clname)
             continue
         dtype, clname, idx1, idx2 = clfinal['list'][block_def]
         iface.debug2r(exported_block=clfinal['list'][block_def])
@@ -1223,15 +1223,15 @@ def extract_classes(iface,clfinal,flfinal,classes2extract, classes2delete = []):
         
 
 def check_qs_classes(iface, base):
-    iface.debug(u"Comprobando clases del fichero QS $filename:%s" % (base))
+    iface.debug("Comprobando clases del fichero QS $filename:%s" % (base))
     nbase, flbase = file_reader(base)
     if flbase is None:
-        iface.info(u"Abortando comprobación por error al abrir los ficheros")
+        iface.info("Abortando comprobación por error al abrir los ficheros")
         return
     clbase = qsclass_reader(iface, base, flbase)
     cpatch = clbase["patch"]
     if iface.patch_dest and cpatch:
-        iface.info(u"Guardando parche en %r" % iface.patch_dest)
+        iface.info("Guardando parche en %r" % iface.patch_dest)
         fpatch = open(iface.patch_dest,"a")
         fpatch.write("--- a/" + base)
         fpatch.write("\n")
@@ -1244,10 +1244,10 @@ def check_qs_classes(iface, base):
     classdict = extract_class_decl_info(iface, flbase)
     
     if not clbase['iface']:
-        iface.error(u"No encontramos declaración de iface.")
+        iface.error("No encontramos declaración de iface.")
         return
     iface_clname = clbase['iface']['classname']
-    iface.debug(u"Se encontró declaración iface de la clase %s" % (repr(iface_clname)))
+    iface.debug("Se encontró declaración iface de la clase %s" % (repr(iface_clname)))
     # Buscar clases duplicadas primero. 
     # Los tests no se ejecutaran bien si tienen clases duplicadas.
     for clname in set(clbase['classes']):
@@ -1257,25 +1257,25 @@ def check_qs_classes(iface, base):
             return
     
     if iface_clname not in classdict:
-        iface.error(u"La declaración de iface requiere una clase %s"
-                    u" que no existe." % (iface_clname))
+        iface.error("La declaración de iface requiere una clase %s"
+                    " que no existe." % (iface_clname))
         return
     not_used_classes = clbase['classes'][:]
     iface_class_hierarchy = []
     current_class = iface_clname
     prev_class = "<no-class>"
     if clbase['iface']['line'] < classdict[current_class]['line']:
-        iface.warn(u"La declaración de iface requiere una clase %s"
-                   u" que está definida más abajo en el código" % (current_class))
+        iface.warn("La declaración de iface requiere una clase %s"
+                   " que está definida más abajo en el código" % (current_class))
     while True:
         if current_class not in not_used_classes:
             if current_class in clbase['classes']:
-                iface.error(u"La clase %s es parte de una "
-                            u"referencia circular (desde: %s)" % 
+                iface.error("La clase %s es parte de una "
+                            "referencia circular (desde: %s)" % 
                             (current_class, prev_class))
             else:
-                iface.error(u"La clase %s no está "
-                            u"definida (desde: %s)" % 
+                iface.error("La clase %s no está "
+                            "definida (desde: %s)" % 
                             (current_class, prev_class))
             return
         not_used_classes.remove(current_class)
@@ -1284,19 +1284,19 @@ def check_qs_classes(iface, base):
         if parent is None: break
         
         if parent not in classdict or parent not in clbase['classes']:
-            iface.error(u"La clase %s no está "
-                        u"definida (extends de la clase %s, desde: %s)" % 
+            iface.error("La clase %s no está "
+                        "definida (extends de la clase %s, desde: %s)" % 
                         (parent, current_class, prev_class))
             return
             
         if not check_class(iface, flbase, clbase, classdict, current_class):
-            iface.error(u"Se detectó algún problema en la clase %s"
-                        u" (clase padre: %s, desde: %s)" % 
+            iface.error("Se detectó algún problema en la clase %s"
+                        " (clase padre: %s, desde: %s)" % 
                         (current_class, parent, prev_class))
         
         if classdict[current_class]['line'] < classdict[parent]['line']:
-            iface.error(u"La clase %s hereda de una clase %s que está"
-                        u" definida más abajo en el código" % (current_class, parent))
+            iface.error("La clase %s hereda de una clase %s que está"
+                        " definida más abajo en el código" % (current_class, parent))
             return
         current_class = parent
 
@@ -1305,22 +1305,22 @@ def check_qs_classes(iface, base):
         try: parent = classdict[clname]['extends']        
         except KeyError: continue # Este error generalmente se avisa antes
         if parent in iface_class_hierarchy:
-            iface.error(u"La clase %s no la heredó iface, y sin embargo,"
-                        u" hereda de la clase %s que sí la heredó." % (clname, parent))
+            iface.error("La clase %s no la heredó iface, y sin embargo,"
+                        " hereda de la clase %s que sí la heredó." % (clname, parent))
             return
     iface.debug2r(classes=iface_class_hierarchy)
-    iface.info2(u"La comprobación se completó sin errores.")
+    iface.info2("La comprobación se completó sin errores.")
     return True
     
     
     
     
 def patch_qs(iface, base, patch):
-    iface.debug(u"Procesando Patch QS $base:%s + $patch:%s" % (base, patch))
+    iface.debug("Procesando Patch QS $base:%s + $patch:%s" % (base, patch))
     nbase, flbase = file_reader(base)
     npatch, flpatch = file_reader(patch)
     if flbase is None or flpatch is None:
-        iface.info(u"Abortando Patch QS por error al abrir los ficheros")
+        iface.info("Abortando Patch QS por error al abrir los ficheros")
         return
     # classlist
     clpatch = qsclass_reader(iface, patch, flpatch) 
@@ -1328,7 +1328,7 @@ def patch_qs(iface, base, patch):
     cdpatch = extract_class_decl_info(iface, flpatch) 
     
     if clpatch['iface']:
-        iface.error(u"El parche contiene una definición de iface. No se puede aplicar.")
+        iface.error("El parche contiene una definición de iface. No se puede aplicar.")
         return
     
     #iface.debug2r(clpatch=clpatch)
@@ -1355,13 +1355,13 @@ def patch_qs(iface, base, patch):
             mode = "insert" if newclass in clpatch['classes'] else "delete"
             
         if mode == "delete":
-            iface.debug(u"Procediendo a la *eliminación* de la clase %s" % newclass)
+            iface.debug("Procediendo a la *eliminación* de la clase %s" % newclass)
         else:
-            iface.debug(u"Procediendo a la inserción de la clase %s" % newclass)
+            iface.debug("Procediendo a la inserción de la clase %s" % newclass)
             
         if mode == "delete" and newclass not in clbase['classes']:
-            iface.info2(u"La clase %s NO estaba insertada en el fichero, "
-                        u"se OMITE el borrado de la clase." % newclass)
+            iface.info2("La clase %s NO estaba insertada en el fichero, "
+                        "se OMITE el borrado de la clase." % newclass)
             continue
 
         # debería heredar de su extends, o su from (si existe). 
@@ -1373,10 +1373,10 @@ def patch_qs(iface, base, patch):
 
             
         if mode == "delete":
-            iface.info2(u"La clase %s ya estaba insertada en el fichero, "
-                        u"se procede a borrar la clase como se ha solicitado." % newclass)
+            iface.info2("La clase %s ya estaba insertada en el fichero, "
+                        "se procede a borrar la clase como se ha solicitado." % newclass)
             old_extends = cdbase[newclass]['extends']
-            for clname, cdict in cdbase.items():
+            for clname, cdict in list(cdbase.items()):
                 # Si alguna clase extendía esta, ahora extenderá $old_extends
                 if cdict['extends'] == newclass:
                     fix_class(iface, flbase, clbase, cdbase, clname, set_extends = old_extends)
@@ -1400,31 +1400,31 @@ def patch_qs(iface, base, patch):
         lower_classes = [ str(x).lower() for x in clbase['classes'] ]
         if str(newclass).lower() in lower_classes:
             if iface.patch_qs_rewrite == "abort":
-                iface.error(u"La clase %s ya estaba insertada en el fichero, "
-                            u"abortamos la operación." % newclass)
+                iface.error("La clase %s ya estaba insertada en el fichero, "
+                            "abortamos la operación." % newclass)
                 return False
             if iface.patch_qs_rewrite == "no":
-                iface.warn(u"La clase %s ya estaba insertada en el fichero, "
-                            u"omitimos el parcheo de esta clase." % newclass)
+                iface.warn("La clase %s ya estaba insertada en el fichero, "
+                            "omitimos el parcheo de esta clase." % newclass)
                 continue
             if iface.patch_qs_rewrite == "yes":
-                iface.info2(u"La clase %s ya estaba insertada en el fichero, "
-                            u"se sobreescribirá la clase." % newclass)
+                iface.info2("La clase %s ya estaba insertada en el fichero, "
+                            "se sobreescribirá la clase." % newclass)
             
             if iface.patch_qs_rewrite == "warn":
-                iface.warn(u"La clase %s ya estaba insertada en el fichero, "
-                            u"se sobreescribirá la clase." % newclass)
+                iface.warn("La clase %s ya estaba insertada en el fichero, "
+                            "se sobreescribirá la clase." % newclass)
             auth_overwrite_class = True
             idx = lower_classes.index(str(newclass).lower())
             oldclass = clbase['classes'][idx]
         if extends is None:
-            iface.error(u"La clase %s carece de extends y no es insertable como"
-                        u" un parche." % newclass)
+            iface.error("La clase %s carece de extends y no es insertable como"
+                        " un parche." % newclass)
             continue
         cfrom = cdpatch[newclass]['from']
         if cfrom and cfrom != extends: 
-            iface.debug(u"class %s: Se ha especificado un %%from %s y "
-                        u"tomará precedencia por encima del extends %s" % (
+            iface.debug("class %s: Se ha especificado un %%from %s y "
+                        "tomará precedencia por encima del extends %s" % (
                         newclass, cfrom, extends) )
             extends = cfrom
             #iface.debug(u"class %s: Se ha especificado un %%from %s, "
@@ -1441,21 +1441,21 @@ def patch_qs(iface, base, patch):
                     if testclass not in clbase['classes']:
                         testclass = clbase['classes'][-1]
                     
-                    iface.warn(u"La clase %s debía heredar de %s, pero no "
-                                u"la encontramos en el fichero base. "
-                                u"En su lugar, heredará de %s." % (newclass,extends, testclass))
+                    iface.warn("La clase %s debía heredar de %s, pero no "
+                                "la encontramos en el fichero base. "
+                                "En su lugar, heredará de %s." % (newclass,extends, testclass))
                     extends = testclass
                 except IndexError:
-                    iface.error(u"La clase %s debía heredar de %s, pero no "
-                                u"la encontramos en el fichero base." % (newclass,extends))
+                    iface.error("La clase %s debía heredar de %s, pero no "
+                                "la encontramos en el fichero base." % (newclass,extends))
                     continue
                 
             else:
                 # Modo antiguo:
-                iface.error(u"La clase %s debía heredar de %s, pero no "
-                            u"la encontramos en el fichero base." % (newclass,extends))
+                iface.error("La clase %s debía heredar de %s, pero no "
+                            "la encontramos en el fichero base." % (newclass,extends))
                 continue
-        iface.debug(u"La clase %s deberá heredar de %s" % (newclass,extends))
+        iface.debug("La clase %s deberá heredar de %s" % (newclass,extends))
         
         # Buscar la clase más inferior que heredó originalmente de "extends"
         if auth_overwrite_class:
@@ -1468,7 +1468,7 @@ def patch_qs(iface, base, patch):
                 cdict = cdbase[classname]
                 if cdict['from'] == extends:
                     extending = cdict['name']
-                    iface.debug(u"La clase %s es la última que heredó de %s, pasamos a heredar de ésta." % (extending,extends))
+                    iface.debug("La clase %s es la última que heredó de %s, pasamos a heredar de ésta." % (extending,extends))
                     break
         
         if mode == "insert":
@@ -1486,9 +1486,9 @@ def patch_qs(iface, base, patch):
                     except KeyError:
                         ext_class_idx += 1
                         if ext_class_idx >= len(clbase["classes"]):
-                            iface.info2(u"Se va a colocar el código de las "
-                                       u"definiciones de la clase %s al"
-                                       u" final del fichero." % (newclass))
+                            iface.info2("Se va a colocar el código de las "
+                                       "definiciones de la clase %s al"
+                                       " final del fichero." % (newclass))
                             child_def_block = max(clbase['def'].values()) + 1 
                             break
             else:
@@ -1508,11 +1508,11 @@ def patch_qs(iface, base, patch):
                 prev_child_cname = clbase['list'][child_class][1]
                 # $prev_child_name debería estar heredando de $extending.
                 if cdbase[prev_child_cname]['extends'] != extending:
-                    iface.error(u"Se esperaba que la clase %s heredara de "
-                                u"%s, pero en cambio hereda de %s" % (prev_child_cname,extending,cdbase[prev_child_cname]['extends']))
+                    iface.error("Se esperaba que la clase %s heredara de "
+                                "%s, pero en cambio hereda de %s" % (prev_child_cname,extending,cdbase[prev_child_cname]['extends']))
                     continue                    
                 else:
-                    iface.debug(u"La clase %s hereda de %s, pasará a heredar %s" % (prev_child_cname,extending,newclass))
+                    iface.debug("La clase %s hereda de %s, pasará a heredar %s" % (prev_child_cname,extending,newclass))
                     todo.append('fix-class prev_child_cname')
             else:
                 # Si no había clase posterior, entonces marcamos como posición
@@ -1524,9 +1524,9 @@ def patch_qs(iface, base, patch):
             if clbase['iface']: # -> primero comprobar que tenemos iface.
                 iface.debug2r(iface=clbase['iface'])
                 if clbase['iface']['classname'] == extending:
-                    iface.debug(u"La clase que estamos extendiendo (%s) es el "
-                            u"tipo de dato usado por iface, por lo tanto actualizamos"
-                            u" el tipo de dato usado por iface a %s" % (extending, newclass))
+                    iface.debug("La clase que estamos extendiendo (%s) es el "
+                            "tipo de dato usado por iface, por lo tanto actualizamos"
+                            " el tipo de dato usado por iface a %s" % (extending, newclass))
                     todo.append('fix-iface newclass')
                     new_iface_class = newclass
             else:
@@ -1536,8 +1536,8 @@ def patch_qs(iface, base, patch):
             # Si la clase del parche que estamos aplicando pasa a extender otra 
             # clase con nombre distinto, actualizaremos también los constructores.
             if cdpatch[newclass]['extends'] != extending:
-                iface.debug(u"La clase %s extendía %s en el parche, pasará a"
-                        u" heredar a la clase %s" % (newclass, 
+                iface.debug("La clase %s extendía %s en el parche, pasará a"
+                        " heredar a la clase %s" % (newclass, 
                             cdpatch[newclass]['extends'], extending))
                 todo.append('fix-class newclass')
             
@@ -1560,7 +1560,7 @@ def patch_qs(iface, base, patch):
                     assert(child_def_block > child_class)
             
                 except KeyError:
-                    iface.info2(u"La clase %s carece de bloque de definición." % newclass)
+                    iface.info2("La clase %s carece de bloque de definición." % newclass)
             
             from_decl_block = clpatch['list'][clpatch['decl'][newclass]]
             # incrustamos en posicion $child_class
@@ -1654,12 +1654,12 @@ def fix_class(iface, flbase, clbase, cdbase, classname, **updates):
     #iface.debug2r(cdbase=cdbase)
     dclassname = classname
     if dclassname not in cdbase:
-        close_matches = difflib.get_close_matches(classname, cdbase.keys(), 1, 0.80)        
+        close_matches = difflib.get_close_matches(classname, list(cdbase.keys()), 1, 0.80)        
         if close_matches:
-            iface.warn(u"La clase %s no existe y se eligió en su lugar %s" % (repr(dclassname),repr(close_matches[0])))
+            iface.warn("La clase %s no existe y se eligió en su lugar %s" % (repr(dclassname),repr(close_matches[0])))
             dclassname = close_matches[0]
         else:
-            iface.error(u"La clase %s no existe y no encontramos ninguna en su lugar. Se aborta fix_class!!!" % (dclassname))
+            iface.error("La clase %s no existe y no encontramos ninguna en su lugar. Se aborta fix_class!!!" % (dclassname))
             return None
             
     set_extends = updates.get("set_extends",-1)
@@ -1725,10 +1725,10 @@ def check_class(iface, flbase, clbase, cdbase, classname):
             found += match 
         
     if len(line_found) < 1:
-        iface.error(u"No encontramos lineas candidatas a constructor")
+        iface.error("No encontramos lineas candidatas a constructor")
         return False
     if len(line_found) > 1:
-        iface.error(u"Encontramos más de una linea candidata a constructor: %s" % repr(line_found))
+        iface.error("Encontramos más de una linea candidata a constructor: %s" % repr(line_found))
         return False
     for m in found:
         old = m.group(0)

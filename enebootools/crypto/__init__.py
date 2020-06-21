@@ -9,7 +9,7 @@ sys.setdefaultencoding('utf8')
 
 
 class CryptoInterface(EnebooToolsInterface):
-    module_description = u"Herramientas de criptografía"
+    module_description = "Herramientas de criptografía"
     def __init__(self, setup_parser = True):
         EnebooToolsInterface.__init__(self, False)
         if setup_parser: self.setup_parser()
@@ -23,7 +23,7 @@ class CryptoInterface(EnebooToolsInterface):
             args = [],
             options = [],
             min_argcount = 0,
-            description = u"Computa un fichero .checksum para un módulo",
+            description = "Computa un fichero .checksum para un módulo",
             call_function = self.do_checksum,
             )
 
@@ -32,7 +32,7 @@ class CryptoInterface(EnebooToolsInterface):
             args = ["pemfile"],
             options = [],
             min_argcount = 1,
-            description = u"Agrega un certificado en formato PEM a la lista de certificados",
+            description = "Agrega un certificado en formato PEM a la lista de certificados",
             call_function = self.do_addcert,
             )
         self.addcert_action.set_help_arg(
@@ -44,7 +44,7 @@ class CryptoInterface(EnebooToolsInterface):
             args = ["certpem", "pkeypem"],
             options = [],
             min_argcount = 2,
-            description = u"Agrega una firma a la lista de firmas usando un fichero PEM para leer certificado y otro para la clave privada",
+            description = "Agrega una firma a la lista de firmas usando un fichero PEM para leer certificado y otro para la clave privada",
             call_function = self.do_addsignature,
             )
             
@@ -58,7 +58,7 @@ class CryptoInterface(EnebooToolsInterface):
             args = [],
             options = [],
             min_argcount = 0,
-            description = u"Realiza comprobaciones varias sobre las firmas existentes",
+            description = "Realiza comprobaciones varias sobre las firmas existentes",
             call_function = self.do_check,
             )
             
@@ -69,24 +69,24 @@ class CryptoInterface(EnebooToolsInterface):
     def do_checksum(self):
         try:
             return main.module_checksum(self)
-        except Exception,e:
+        except Exception as e:
             self.exception(type(e).__name__,str(e))
 
     def do_check(self):
         try:
             return main.check(self)
-        except Exception,e:
+        except Exception as e:
             self.exception(type(e).__name__,str(e))
 
     def do_addcert(self, pemfile):
         try:
             return main.add_certificate(self,pemfile)
-        except Exception,e:
+        except Exception as e:
             self.exception(type(e).__name__,str(e))
 
     def do_addsignature(self,certpem,pkeypem):
         try:
             return main.add_signature(self,certpem,pkeypem)
-        except Exception,e:
+        except Exception as e:
             self.exception(type(e).__name__,str(e))
 

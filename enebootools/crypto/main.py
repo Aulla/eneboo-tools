@@ -4,7 +4,7 @@ import re
 import datetime
 import os
 import os.path
-from StringIO import StringIO
+from io import StringIO
 from base64 import b64encode, b64decode
 
 from lxml import etree
@@ -36,7 +36,7 @@ def get_new_checksum_filename(iface, dirname, modulename):
         if filename not in checksumfiles: break
     if checksumfiles:
         if filename < max(checksumfiles):
-             print "WARN: Fichero de firma a generar es alfabeticamente menor a otro ya existente."
+             print("WARN: Fichero de firma a generar es alfabeticamente menor a otro ya existente.")
     return filename, checksumfiles
     
 
@@ -44,13 +44,13 @@ def module_checksum(iface):
     try:
         module = [ name for name in os.listdir(".") if name.endswith(".mod") ][0]
     except IndexError:
-        raise ValueError, "La carpeta actual no contiene un fichero de modulo"
-    print u"Module checksum for %s . . ." % repr(module)
+        raise ValueError("La carpeta actual no contiene un fichero de modulo")
+    print("Module checksum for %s . . ." % repr(module))
     module = os.path.realpath(module)
     if not os.path.exists(module):
-        raise AssertionError, "File does not exist: %s" % module
+        raise AssertionError("File does not exist: %s" % module)
     if not module.endswith(".mod"):
-        raise AssertionError, "File does not end in '.mod': %s" % module
+        raise AssertionError("File does not end in '.mod': %s" % module)
         
     dirname = os.path.dirname(module)
     modulefile = os.path.basename(module)
@@ -107,7 +107,7 @@ def module_checksum(iface):
     for oldfile in olderfiles:
         try:
             oldtree = etree.parse(oldfile, parser = xmlparser)
-        except Exception, e:
+        except Exception as e:
             continue
         oldxmlc14n_io = StringIO()
         oldtree.write_c14n(oldxmlc14n_io)  
@@ -117,7 +117,7 @@ def module_checksum(iface):
         oldxmlc14n_digest.update(oldxmlc14n)
         oldxmlc14n_digest = oldxmlc14n_digest.hexdigest()
         if xmlc14n_digest == oldxmlc14n_digest:
-            print "INFO: El fichero de checksum %s ya era valido." % oldfile
+            print("INFO: El fichero de checksum %s ya era valido." % oldfile)
             return oldfile
     # ---------------
     
@@ -125,7 +125,7 @@ def module_checksum(iface):
     f1 = open(checksumfile, "w")
     f1.write(xmltext)
     f1.close()
-    print "Se ha generado el fichero %s" % checksumfile
+    print("Se ha generado el fichero %s" % checksumfile)
     return checksumfile
 
 
@@ -146,7 +146,7 @@ def u8(txt):
     return utxt
 
 def u(txt):
-    if isinstance(txt,unicode): return txt
+    if isinstance(txt,str): return txt
     if ord(txt[0]) == 0:
         txt = "".join( c for c in txt if ord(c) > 0)
         
@@ -158,24 +158,24 @@ def u(txt):
         ]
     for codec in codecs:
         try:
-            return unicode(txt,codec)
+            return str(txt,codec)
         except Exception:
             pass
-    raise ValueError,"Unknown codec?"                
+    raise ValueError("Unknown codec?")                
     
             
 def add_certificate(iface, pemfile):
     try:
         module = [ name for name in os.listdir(".") if name.endswith(".mod") ][0]
     except IndexError:
-        raise ValueError, "La carpeta actual no contiene un fichero de modulo"
+        raise ValueError("La carpeta actual no contiene un fichero de modulo")
 
     modulename, ext = os.path.splitext(module)
     certificates_file = modulename + ".certificates"
     cert1 = X509.load_cert(pemfile)
     
     if not os.path.exists(certificates_file):
-        print "INFO: El fichero %s no existe, será creado." % certificates_file
+        print("INFO: El fichero %s no existe, será creado." % certificates_file)
         xmlcert_root = new_certificates_file(iface)
     else:
         # Parse certificates xml here:
@@ -185,7 +185,7 @@ def add_certificate(iface, pemfile):
         xmlcert_root.text = None
 
     for n in xmlcert_root.xpath("certificate[@fingerprint-sha256='%s']" % cert1.get_fingerprint('sha256').lower()):
-        print "El certificado ya está insertado en el fichero."
+        print("El certificado ya está insertado en el fichero.")
         return cert1   
 
     xmlcertificate = etree.SubElement(xmlcert_root,"certificate")
@@ -203,7 +203,7 @@ def add_certificate(iface, pemfile):
     f1.write(xmltext)
     f1.close()
     
-    print "Se ha escrito el fichero %s" % certificates_file
+    print("Se ha escrito el fichero %s" % certificates_file)
     return cert1
 
 def create_signature_options(iface):
@@ -284,13 +284,13 @@ def add_signature(iface,certpem,pkeypem):
     try:
         module = [ name for name in os.listdir(".") if name.endswith(".mod") ][0]
     except IndexError:
-        raise ValueError, "La carpeta actual no contiene un fichero de modulo"
+        raise ValueError("La carpeta actual no contiene un fichero de modulo")
 
     modulename, ext = os.path.splitext(module)
     signatures_file = modulename + ".signatures"
 
     if not os.path.exists(signatures_file):
-        print "INFO: El fichero %s no existe, será creado." % signatures_file
+        print("INFO: El fichero %s no existe, será creado." % signatures_file)
         xmlsign_root = new_signatures_file(iface)
     else:
         # Parse certificates xml here:
@@ -368,14 +368,14 @@ def add_signature(iface,certpem,pkeypem):
     cert1_pkey.verify_update(data)
     verification = cert1_pkey.verify_final(signature)
     if verification != 1:
-        print "ERROR: Verificacion de firma erronea, devolvio %d. Compruebe que la firma corresponde al certificado." % verification
+        print("ERROR: Verificacion de firma erronea, devolvio %d. Compruebe que la firma corresponde al certificado." % verification)
         return
 
     # Eliminar firmas previas que sean del mismo firmante.
     for signed_doc in xmlsign_root.xpath("signed-document[signer-certificate/@fingerprint-sha256='%s']" % cert1.get_fingerprint('sha256').lower()):
         doc_sha256 = signed_doc.xpath("document/@sha256")[0]
         if doc_sha256 == data_hash: continue
-        print "INFO: Se elimina firma antigua del mismo certificado."
+        print("INFO: Se elimina firma antigua del mismo certificado.")
         xmlsign_root.remove(signed_doc)
         
         
@@ -385,7 +385,7 @@ def add_signature(iface,certpem,pkeypem):
     f1.write(xmltext)
     f1.close()
     
-    print "Se ha escrito el fichero %s" % signatures_file
+    print("Se ha escrito el fichero %s" % signatures_file)
     
             
         
@@ -393,12 +393,12 @@ def check(iface):
     try:
         module = [ name for name in os.listdir(".") if name.endswith(".mod") ][0]
     except IndexError:
-        raise ValueError, "La carpeta actual no contiene un fichero de modulo"
+        raise ValueError("La carpeta actual no contiene un fichero de modulo")
 
     modulename, ext = os.path.splitext(module)
     xmlparser = etree.XMLParser(ns_clean=True, remove_blank_text=True,remove_comments=True,remove_pis=True)
 
-    print "Comprobacion general de los checksums en el modulo %s:" % modulename
+    print("Comprobacion general de los checksums en el modulo %s:" % modulename)
     dirname = "."
     x, chk_list = get_new_checksum_filename(iface,dirname,modulename)
     
@@ -424,40 +424,40 @@ def check(iface):
             file_hashes[filename] = hashobj.hexdigest()
     
     for checksumfile in chk_list:
-        print "Analizando %s . . . " % checksumfile
+        print("Analizando %s . . . " % checksumfile)
         try:
             xmlchktree = etree.parse(checksumfile, parser = xmlparser)
-        except Exception, e:
+        except Exception as e:
             continue
         xmlchkroot = xmlchktree.getroot()
         if xmlchkroot.tag != "eneboo-checksums": 
-            print "WARN: Unknown checksum file with tag <%s>, probably is a wrong file!" % xmlchkroot.tag
+            print("WARN: Unknown checksum file with tag <%s>, probably is a wrong file!" % xmlchkroot.tag)
             
         if xmlchkroot.get("format") != "SHA-256:hex": 
-            print "WARN: Unexpected checksum format `%s`, probably checks will fail!" % xmlchkroot.get("format")
+            print("WARN: Unexpected checksum format `%s`, probably checks will fail!" % xmlchkroot.get("format"))
             
         if xmlchkroot.get("version") != "1.0": 
-            print "WARN: Unexpected checksum file version `%s`, checks may fail." % xmlchkroot.get("version")
+            print("WARN: Unexpected checksum file version `%s`, checks may fail." % xmlchkroot.get("version"))
             
-        chk_filenames = file_hashes.keys()
+        chk_filenames = list(file_hashes.keys())
         for element in xmlchkroot:
             if element.tag == "file":
                 name, fhash = element.get('name'), element.text
                 if name in file_hashes: 
                     chk_filenames.remove(name)
                     if fhash != file_hashes[name]:
-                        print "ERROR: Fichero '%s' modificado" % name
+                        print("ERROR: Fichero '%s' modificado" % name)
                 else:
-                    print "ERROR: Fichero '%s' borrado" % name
+                    print("ERROR: Fichero '%s' borrado" % name)
                 
             else:
-                print "WARN: Unknown and ignored tag:", element.tag
+                print("WARN: Unknown and ignored tag:", element.tag)
         
         if chk_filenames:
-            print "ERROR: ficheros agregados: %s" % (", ".join(chk_filenames))
+            print("ERROR: ficheros agregados: %s" % (", ".join(chk_filenames)))
     
 
-    print "Comprobacion general de los certificados en el modulo %s:" % modulename
+    print("Comprobacion general de los certificados en el modulo %s:" % modulename)
 
     certificates_file = modulename + ".certificates"
     
@@ -467,13 +467,13 @@ def check(iface):
         xmlcert_root = newtree.getroot()
         xmlcert_root.text = None
     else:
-        print "INFO: El fichero de certificados %s no existe" % certificates_file
+        print("INFO: El fichero de certificados %s no existe" % certificates_file)
         xmlcert_root = new_certificates_file(iface)
 
     if xmlcert_root.tag != "eneboo-certificates":
-            print "WARN: Unknown certificates file with tag <%s>, probably is a wrong file!" % xmlcert_root.tag
+            print("WARN: Unknown certificates file with tag <%s>, probably is a wrong file!" % xmlcert_root.tag)
     if xmlcert_root.get("version") != "1.0": 
-        print "WARN: Unexpected certificates file version `%s`, load may fail." % xmlcert_root.get("version")
+        print("WARN: Unexpected certificates file version `%s`, load may fail." % xmlcert_root.get("version"))
     
     cert_dict = {}
     for element in xmlcert_root:
@@ -481,22 +481,22 @@ def check(iface):
             try:
                 cert1 = X509.load_cert_string(element.text)
                 
-            except Exception, e:
+            except Exception as e:
                 element.text = None
-                print "ERROR: Error desconocido al cargar el certificado %s: %s" % (etree.tostring(element), repr(e))
+                print("ERROR: Error desconocido al cargar el certificado %s: %s" % (etree.tostring(element), repr(e)))
                 continue
             
             fingerprint = cert1.get_fingerprint('sha256').lower()
             cert_dict[fingerprint] = cert1
             if cert1.check_ca():
-                print "WARN: Certificado CA cargado:", cert1.get_subject().as_text()
+                print("WARN: Certificado CA cargado:", cert1.get_subject().as_text())
             else:
-                print "INFO: Certificado cargado:", cert1.get_subject().as_text()
+                print("INFO: Certificado cargado:", cert1.get_subject().as_text())
         else:
-            print "WARN: Unknown and ignored tag:", element.tag
+            print("WARN: Unknown and ignored tag:", element.tag)
     
     
-    print "Comprobacion general de los firmas en el modulo %s:" % modulename
+    print("Comprobacion general de los firmas en el modulo %s:" % modulename)
     
     signatures_file = modulename + ".signatures"
     
@@ -506,14 +506,14 @@ def check(iface):
         xmlsign_root = newtree.getroot()
         xmlsign_root.text = None
     else:
-        print "INFO: El fichero de firmas %s no existe" % signatures_file
+        print("INFO: El fichero de firmas %s no existe" % signatures_file)
         xmlsign_root = new_signatures_file(iface)
         
 
     if xmlsign_root.tag != "eneboo-signatures":
-            print "WARN: Unknown signatures file with tag <%s>, probably is a wrong file!" % xmlsign_root.tag
+            print("WARN: Unknown signatures file with tag <%s>, probably is a wrong file!" % xmlsign_root.tag)
     if xmlsign_root.get("version") != "1.0": 
-        print "WARN: Unexpected certificates file version `%s`, load may fail." % xmlsign_root.get("version")
+        print("WARN: Unexpected certificates file version `%s`, load may fail." % xmlsign_root.get("version"))
     
     for element in xmlsign_root:
         if element.tag == "signed-document":
@@ -524,66 +524,66 @@ def check(iface):
             elif check_signature_text in ('false','no','0','f','n'):
                 check_signature = False
             else:
-                print "WARN: check attribute not understood: %s" % (repr(check_signature_text))
+                print("WARN: check attribute not understood: %s" % (repr(check_signature_text)))
                 check_signature = True
             
             for subelement in element:
                 if subelement.tag == "signer-certificate":
-                    if signer_certificate is not None: print "WARN: signer-certificate duplicado."
+                    if signer_certificate is not None: print("WARN: signer-certificate duplicado.")
                     signer_certificate = subelement
                 elif subelement.tag == "document":
-                    if document is not None: print "WARN: document duplicado."
+                    if document is not None: print("WARN: document duplicado.")
                     document = subelement
                 elif subelement.tag == "signature":
-                    if signature is not None: print "WARN: signature duplicado."
+                    if signature is not None: print("WARN: signature duplicado.")
                     signature = subelement
                 else:                    
-                    print "WARN: Unknown and ignored subtag:", subelement.tag
+                    print("WARN: Unknown and ignored subtag:", subelement.tag)
                     
             if signer_certificate is None: 
-                print "ERROR: required signer-certificate tag not found."
+                print("ERROR: required signer-certificate tag not found.")
                 continue
             if document is None: 
-                print "ERROR: required document tag not found."
+                print("ERROR: required document tag not found.")
                 continue
             if signature is None: 
-                print "ERROR: required signature tag not found."
+                print("ERROR: required signature tag not found.")
                 continue
             
             fingerprint = signer_certificate.get("fingerprint-sha256")
             if fingerprint not in cert_dict:
-                print "ERROR: certificate not found."
+                print("ERROR: certificate not found.")
                 continue
             certificate = cert_dict[fingerprint]
             result, documents = verify_signature(certificate, document, signature)
             if result != 1:
-                print "ERROR: Signature not valid! result %s." % repr(result)
+                print("ERROR: Signature not valid! result %s." % repr(result))
                 continue
             
             if check_signature == False:
-                print "Signature seems valid and check='false', full check ignored."
+                print("Signature seems valid and check='false', full check ignored.")
                 continue
             
             result = full_check(documents)
             
             if result != 1:
-                print "ERROR: Full signature check failed! result %s." % repr(result)
+                print("ERROR: Full signature check failed! result %s." % repr(result))
                 continue
-            print "La firma es correcta para:",  certificate.get_subject().as_text()
+            print("La firma es correcta para:",  certificate.get_subject().as_text())
             
         else:
-            print "WARN: Unknown and ignored tag:", element.tag
+            print("WARN: Unknown and ignored tag:", element.tag)
         
         
 def verify_signature(certificate, document, signature):
     documents = {}
     if signature.get("format") != "SHA-256:RSASSA-PKCS1v1.5:base64":
-        print "WARN: Unknwon signature format '%s', check may fail."
+        print("WARN: Unknwon signature format '%s', check may fail.")
     
     bin_signature = b64decode(signature.text)
     
     if document.get("format") != "tag:name:sha256":
-        print "WARN: Unknwon document format '%s', check may fail."
+        print("WARN: Unknwon document format '%s', check may fail.")
 
     for node in document:
         node_data = ""    
@@ -591,16 +591,16 @@ def verify_signature(certificate, document, signature):
             node_data = open(node.get("href")).read()
         elif node.tag == "data":
             if node.get("format") != "base64":
-                print "WARN: document format not supported %s" % node.get("format")
+                print("WARN: document format not supported %s" % node.get("format"))
             node_data = b64decode(node.text)
         else:
-            print "WARN: Unknown tag %s" % node.tag
+            print("WARN: Unknown tag %s" % node.tag)
         documents[node.get("name")] = node_data
         hashobj = hashlib.sha256()
         hashobj.update(node_data)
         node_hash = hashobj.hexdigest()
         if node_hash != node.get("sha256"):
-            print "ERROR: Node hash doesn't match!", node.tag, node.get("name")
+            print("ERROR: Node hash doesn't match!", node.tag, node.get("name"))
             return -101
             
     
@@ -613,7 +613,7 @@ def verify_signature(certificate, document, signature):
     hashobj.update(data)
     data_hash = hashobj.hexdigest()
     if len(doc_sha256) > 2 and data_hash != doc_sha256:
-        print "WARN: Document hashes doesn't match: %s != %s" % (data_hash , doc_sha256)
+        print("WARN: Document hashes doesn't match: %s != %s" % (data_hash , doc_sha256))
         
     cert1_pkey = certificate.get_pubkey()
     cert1_pkey.reset_context(md='sha256')
@@ -622,7 +622,7 @@ def verify_signature(certificate, document, signature):
     cert1_pkey.verify_update(data)
     verification = cert1_pkey.verify_final(bin_signature)
     if verification != 1:
-        print "ERROR: Verificacion de firma erronea, devolvio %d. Compruebe que la firma corresponde al certificado." % verification
+        print("ERROR: Verificacion de firma erronea, devolvio %d. Compruebe que la firma corresponde al certificado." % verification)
     
     return verification, documents
     
@@ -632,10 +632,10 @@ def One(obj):
     try:    
         if len(obj) == 0: return None
         if len(obj) == 1: return obj[0]
-        print "WARN::One: Unexpected length %d" % obj
+        print("WARN::One: Unexpected length %d" % obj)
         return obj[0]
-    except Exception, e:
-        print e.__class__.__name__, e
+    except Exception as e:
+        print(e.__class__.__name__, e)
         return None
         
     
@@ -645,11 +645,11 @@ def full_check(documents):
     checksums_xml = documents.get("checksums.xml")
     checksumoptions_xml = documents.get("checksum-options.xml")
     if checksums_xml is None:
-        print "ERROR: checksums.xml file not found and is mandatory."
+        print("ERROR: checksums.xml file not found and is mandatory.")
         return -101
         
     if checksumoptions_xml is None:
-        print "ERROR: checksum-options.xml file not found and is mandatory."
+        print("ERROR: checksum-options.xml file not found and is mandatory.")
         return -102
         
     xmlparser = etree.XMLParser(ns_clean=True, remove_blank_text=True,remove_comments=False,remove_pis=True)
@@ -661,16 +661,16 @@ def full_check(documents):
     xml_checksumoptions_root = xml_checksumoptions_tree.getroot()
         
     if xml_checksumoptions_root.tag != "eneboo-checksum-options":
-        print "WARN: checksum-options.xml root tag unknown: %s" % xml_checksumoptions_root.tag
+        print("WARN: checksum-options.xml root tag unknown: %s" % xml_checksumoptions_root.tag)
         
     if xml_checksums_root.tag != "eneboo-checksums":
-        print "WARN: checksums.xml root tag unknown: %s" % xml_checksums_root.tag
+        print("WARN: checksums.xml root tag unknown: %s" % xml_checksums_root.tag)
 
     if xml_checksumoptions_root.get("version") != "1.0":
-        print "WARN: Unsupported version for checksum-options.xml: %s" % xml_checksumoptions_root.get("version") 
+        print("WARN: Unsupported version for checksum-options.xml: %s" % xml_checksumoptions_root.get("version")) 
 
     if xml_checksums_root.get("version") != "1.0":
-        print "WARN: Unsupported version for checksums.xml: %s" % xml_checksums_root.get("version") 
+        print("WARN: Unsupported version for checksums.xml: %s" % xml_checksums_root.get("version")) 
         
     today = datetime.date.today()
     since_txt = One(xml_checksumoptions_root.xpath("valid/since/text()"))
@@ -678,12 +678,12 @@ def full_check(documents):
     if since_txt:
         since = datetime.datetime.strptime(since_txt, "%Y-%m-%d").date()
         if since > today:
-            print "ERROR: Signature will be valid in the future (%s)" % since_txt
+            print("ERROR: Signature will be valid in the future (%s)" % since_txt)
             return -103     
     if until_txt:
         until = datetime.datetime.strptime(until_txt, "%Y-%m-%d").date()
         if today > until:
-            print "ERROR: Signature was valid in the past (%s)" % until_txt
+            print("ERROR: Signature was valid in the past (%s)" % until_txt)
             return -104     
     
     filetypes = xml_checksumoptions_root.xpath("checks/filetype/text()")
@@ -702,36 +702,36 @@ def full_check(documents):
             
     xmlchkroot = xml_checksums_root
     if xmlchkroot.tag != "eneboo-checksums": 
-        print "WARN: Unknown checksum file with tag <%s>, probably is a wrong file!" % xmlchkroot.tag
+        print("WARN: Unknown checksum file with tag <%s>, probably is a wrong file!" % xmlchkroot.tag)
         
     if xmlchkroot.get("format") != "SHA-256:hex": 
-        print "WARN: Unexpected checksum format `%s`, probably checks will fail!" % xmlchkroot.get("format")
+        print("WARN: Unexpected checksum format `%s`, probably checks will fail!" % xmlchkroot.get("format"))
         
     if xmlchkroot.get("version") != "1.0": 
-        print "WARN: Unexpected checksum file version `%s`, checks may fail." % xmlchkroot.get("version")
+        print("WARN: Unexpected checksum file version `%s`, checks may fail." % xmlchkroot.get("version"))
         
-    chk_filenames = file_hashes.keys()
+    chk_filenames = list(file_hashes.keys())
     for element in xmlchkroot:
         if element.tag == "file":
             name, fhash = element.get('name'), element.text
             if name in file_hashes: 
                 chk_filenames.remove(name)
                 if fhash != file_hashes[name]:
-                    print "ERROR: Fichero '%s' modificado" % name
+                    print("ERROR: Fichero '%s' modificado" % name)
                     return -107
             else:
                 basename, ext = os.path.splitext(name)
                 if ext not in filetypes: continue
             
                 if "no-deleted-file-check" in additional_checks:
-                    print "ERROR: Fichero '%s' borrado" % name
+                    print("ERROR: Fichero '%s' borrado" % name)
                     return -106
             
         else:
-            print "WARN: Unknown and ignored tag:", element.tag
+            print("WARN: Unknown and ignored tag:", element.tag)
     
     if "no-new-file-check" in additional_checks and chk_filenames:
-        print "ERROR: ficheros agregados: %s" % (", ".join(chk_filenames))
+        print("ERROR: ficheros agregados: %s" % (", ".join(chk_filenames)))
         return -105
   
     return 1

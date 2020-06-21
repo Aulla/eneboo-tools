@@ -87,14 +87,14 @@ def to_uint32(text):
 def read_string(f1):
     txtsize = f1.read(4)
     if len(txtsize)==0: return None
-    if len(txtsize)<4: raise AssertionError, "File Error"
+    if len(txtsize)<4: raise AssertionError("File Error")
     slen = to_uint32(txtsize)
     
     string = f1.read(slen)
     
     try: assert(len(string) == slen)
     except AssertionError:
-        print "ASSERT: len(string) %d == slen %d  ... FAILED" % (len(string), slen)
+        print("ASSERT: len(string) %d == slen %d  ... FAILED" % (len(string), slen))
         raise
     #print slen, repr(string[:32])
     return string
@@ -105,10 +105,10 @@ def uncompress(txt):
     slen = to_uint32(txt[0:4])
     try:
         txt_data = zlib.decompress(txt[4:])
-    except zlib.error, e:
+    except zlib.error as e:
         return None
     if slen != len(txt_data):
-        print "Uncompressed data size does not match the expected size"
+        print("Uncompressed data size does not match the expected size")
     #print slen, len(txt_data), repr(txt_data[:256])
     return txt_data
     
@@ -120,7 +120,7 @@ def splitpkg(iface, packagefile):
     foldername = packagefile+".contents"
     try:
         os.mkdir(foldername)
-    except OSError, e:
+    except OSError as e:
         pass
     
     sys.stdout.write("|")
@@ -145,8 +145,8 @@ def splitpkg(iface, packagefile):
         #    sys.stdout.flush()
     f1.close()
         
-    print
-    print "Hecho. %d objetos extraidos en %s" % (n,foldername)
+    print()
+    print("Hecho. %d objetos extraidos en %s" % (n,foldername))
     
 def unpackpkg(iface, packagefile):
     iface.info2("Desempaquetando %s . . ." % packagefile)
@@ -156,10 +156,10 @@ def unpackpkg(iface, packagefile):
     foldername = packagefile+".unpacked"
     try:
         os.mkdir(foldername)
-    except OSError, e:
+    except OSError as e:
         pass
     
-    print "Header:", version[:-1]
+    print("Header:", version[:-1])
     n = 1    
     modulos = UnpackerClass(foldername)
     while n<20000:
@@ -174,7 +174,7 @@ def unpackpkg(iface, packagefile):
                 
             n+=1
         else:            
-            print "..", text
+            print("..", text)
     
     def get_next_file(f1=f1):
         text = read_string(f1)
@@ -184,7 +184,7 @@ def unpackpkg(iface, packagefile):
         unzipped = uncompress(text)
         return unzipped
     modulos.process_files(next_file=get_next_file)
-    print
+    print()
     f1.close()
         
 
@@ -211,7 +211,7 @@ class UnpackerClass(object):
             path1 = os.path.join(self.dest, areapath(area) )
             path2 = os.path.join(self.dest, path )
             
-            if name in self.mod: print "WARN: Modulo redeclarado:", mod
+            if name in self.mod: print("WARN: Modulo redeclarado:", mod)
             self.mod[name] = module
             
             self.modpath[name] = path

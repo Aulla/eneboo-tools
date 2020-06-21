@@ -10,21 +10,21 @@ if output_encoding is None:
 
 def ustr(x):
     if type(x) is str: return x
-    if type(x) is unicode: return x.encode("UTF-8","replace")
+    if type(x) is str: return x.encode("UTF-8","replace")
     return str(x)
     
 
 def myprint(*args):
     txt = " ".join(args)+"\n"
     try:
-        sys.stdout.write(unicode(txt,"UTF-8","replace"))
+        sys.stdout.write(str(txt,"UTF-8","replace"))
     except Exception:
         sys.stdout.write(txt)
         
     
 
 class EnebooToolsInterface(object):
-    module_description = u"Descripción genérica"
+    module_description = "Descripción genérica"
     def __init__(self, setup_parser = True):
         self.action_chain = None
         self.parser = None
@@ -40,7 +40,7 @@ class EnebooToolsInterface(object):
         self.parser.declare_option(
             name = "output-file",
             aliases = [ "output" ], # sinonimos con los que llamar la opcion
-            description = u"guarda la salida del programa en PATH",
+            description = "guarda la salida del programa en PATH",
             level = "action", # ( action | parser )
             variable = "PATH", # determina el nombre de la variable en la ayuda.
                         # si es None, no hay variable. Esto fuerza también la sintaxis.
@@ -49,7 +49,7 @@ class EnebooToolsInterface(object):
         self.parser.declare_option(
             name = "verbose",
             short = "vV", # opción corta relacionada (si se usa, no puede haber variable)
-            description = u"Aumenta la cantidad de mensajes",
+            description = "Aumenta la cantidad de mensajes",
             level = "parser", # ( action | parser )
             # variable = None  # es omisible, porque None es por defecto.
             call_function = self.set_verbose
@@ -57,7 +57,7 @@ class EnebooToolsInterface(object):
         self.parser.declare_option(
             name = "quiet",
             short = "q", 
-            description = u"Disminuye la cantidad de mensajes",
+            description = "Disminuye la cantidad de mensajes",
             level = "parser",
             call_function = self.set_quiet
             )
@@ -77,10 +77,10 @@ class EnebooToolsInterface(object):
         # ]
         # Se lanzan en orden.
         if self.action_chain is None:
-            print "Hubo un error al leer los argumentos y no se puede realizar la acción."
+            print("Hubo un error al leer los argumentos y no se puede realizar la acción.")
             return 
         for function, args, kwargs in self.action_chain:
-            if self.verbosity > 4: print "DEBUG:", function, args, kwargs
+            if self.verbosity > 4: print("DEBUG:", function, args, kwargs)
             ret = function(*args, **kwargs)
             if ret: return ret
         
@@ -100,18 +100,18 @@ class EnebooToolsInterface(object):
         if self.verbosity < 4: return
         from pprint import pformat
         if variable is not None: kwargs['var'] = variable
-        print "DEBUG+",
+        print("DEBUG+", end=' ')
         for arg, var in sorted(kwargs.items()):
             prefix = ": %s =" % arg
-            print prefix, 
+            print(prefix, end=' ') 
             try: lines = pformat(var).splitlines()
             except UnicodeEncodeError: 
                 lines = ["UNICODE ENCODE ERROR"]
             for n,line in enumerate(lines):
-                if n > 0: print " "*(len(prefix)+0), 
-                print line,
-                if n < len(lines)-1: print
-        print
+                if n > 0: print(" "*(len(prefix)+0), end=' ') 
+                print(line, end=' ')
+                if n < len(lines)-1: print()
+        print()
                 
 
     def debug2(self, text):

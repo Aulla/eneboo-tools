@@ -4,13 +4,13 @@ import re
 def test_drivers():
     mysql, pgsql, sqlite = None, None, None
     try: import MySQLdb as mysql
-    except ImportError: print "WARN: python-mysqldb was not found. MySQL support disabled."
+    except ImportError: print("WARN: python-mysqldb was not found. MySQL support disabled.")
 
     try: import psycopg2 as pgsql
-    except ImportError: print "WARN: python-psycopg was not found. PostgreSQL support disabled."
+    except ImportError: print("WARN: python-psycopg was not found. PostgreSQL support disabled.")
 
     try: import sqlite3 as sqlite
-    except ImportError: print "WARN: python-sqlite or sqlite3 was not found. SQLite support disabled."
+    except ImportError: print("WARN: python-sqlite or sqlite3 was not found. SQLite support disabled.")
     return mysql, pgsql, sqlite
 
 class DBUrl(object):
@@ -23,11 +23,11 @@ class DBUrl(object):
     dbname = None
     
     def __init__(self, **kwargs):
-        for k,v in kwargs.items():
+        for k,v in list(kwargs.items()):
             setattr(self, k, v)
     
     def __str__(self):
-        return "\n".join(["DBUrl::"] + ["    %s = %s" % (k,repr(v)) for k,v in self.__dict__.items() ]) 
+        return "\n".join(["DBUrl::"] + ["    %s = %s" % (k,repr(v)) for k,v in list(self.__dict__.items()) ]) 
 
 
 class DBAutoQuery(object):
@@ -127,7 +127,7 @@ if __name__ == "__main__":
     test_drivers()
     if len(sys.argv) > 1:
         url = parse_url(sys.argv[1])
-        print url
+        print(url)
         
     
 

@@ -67,7 +67,7 @@
 #      ///'       
 #     //
 #    '
-from __future__ import with_statement
+
 from datetime import datetime
 import decimal
 import logging
@@ -337,13 +337,13 @@ class Database(object):
             return self.adapter.get_field_types()[db_field]
         except KeyError:
             raise AttributeError('Unknown field type: "%s", valid types are: %s' % \
-                db_field, ', '.join(self.adapter.get_field_types().keys())
+                db_field, ', '.join(list(self.adapter.get_field_types().keys()))
             )
     
     def create_table(self, model_class, safe=False):
         framing = safe and "CREATE TABLE IF NOT EXISTS %s (%s);" or "CREATE TABLE %s (%s);"
         columns = []
-        field_list = model_class._meta.fields.values()
+        field_list = list(model_class._meta.fields.values())
         field_list.sort(key=lambda x: x._order)
         for field in field_list:
             columns.append(field.to_sql())
@@ -448,7 +448,7 @@ class QueryResultWrapper(object):
     
     def model_from_rowset(self, model_class, row_dict):
         instance = model_class()
-        for attr, value in row_dict.iteritems():
+        for attr, value in row_dict.items():
             if attr in instance._meta.fields:
                 field = instance._meta.fields[attr]
                 setattr(instance, attr, field.python_value(value))
@@ -466,7 +466,7 @@ class QueryResultWrapper(object):
         else:
             return iter(self._result_cache)
     
-    def next(self):
+    def __next__(self):
         row = self.cursor.fetchone()
         if row:
             row_dict = self._row_to_dict(row, self.cursor)
@@ -546,7 +546,7 @@ class Node(object):
         self.negated = not self.negated
         return self
 
-    def __nonzero__(self):
+    def __bool__(self):
         return bool(self.children)
     
     def __unicode__(self):
@@ -554,9 +554,9 @@ class Node(object):
         nodes = []
         for child in self.children:
             if isinstance(child, Q):
-                query.append(unicode(child))
+                query.append(str(child))
             elif isinstance(child, Node):
-                nodes.append('(%s)' % unicode(child))
+                nodes.append('(%s)' % str(child))
         query.extend(nodes)
         connector = ' %s ' % self.connector
         query = connector.join(query)
@@ -590,8 +590,8 @@ class Q(object):
         return self
     
     def __unicode__(self):
-        bits = ['%s = %s' % (k, v) for k, v in self.query.items()]
-        if len(self.query.items()) > 1:
+        bits = ['%s = %s' % (k, v) for k, v in list(self.query.items())]
+        if len(list(self.query.items())) > 1:
             connector = ' AND '
             expr = '(%s)' % connector.join(bits)
         else:
@@ -658,7 +658,7 @@ class BaseQuery(object):
     
     def _clone_dict_graph(self, dg):
         cloned = {}
-        for node, edges in dg.items():
+        for node, edges in list(dg.items()):
             cloned[node] = list(edges)
         return cloned
     
@@ -676,7 +676,7 @@ class BaseQuery(object):
     
     def parse_query_args(self, model, **query):
         parsed = {}
-        for lhs, rhs in query.iteritems():
+        for lhs, rhs in query.items():
             if self.query_separator in lhs:
                 lhs, op = lhs.rsplit(self.query_separator, 1)
             else:
@@ -855,7 +855,7 @@ class BaseQuery(object):
         query = []
         query_data = []
         parsed = self.parse_query_args(model, **q.query)
-        for (name, lookup) in parsed.iteritems():
+        for (name, lookup) in parsed.items():
             operation, value = lookup
             if isinstance(value, SelectQuery):
                 sql, value = self.convert_subquery(value)
@@ -983,7 +983,7 @@ class SelectQuery(BaseQuery):
     def group_by(self, clause):
         model = self.query_context
         
-        if isinstance(clause, basestring):
+        if isinstance(clause, str):
             fields = (clause,)
         elif isinstance(clause, (list, tuple)):
             fields = clause
@@ -1010,7 +1010,7 @@ class SelectQuery(BaseQuery):
                 if len(clause) == 3:
                     model, field, ordering = clause
                 elif len(clause) == 2:
-                    if isinstance(clause[0], basestring):
+                    if isinstance(clause[0], str):
                         model = self.query_context
                         field, ordering = clause
                     else:
@@ -1039,7 +1039,7 @@ class SelectQuery(BaseQuery):
         try:
             orig_ctx = self.query_context
             self.query_context = self.model
-            obj = self.where(*args, **kwargs).paginate(1, 1).execute().next()
+            obj = next(self.where(*args, **kwargs).paginate(1, 1).execute())
             return obj
         except StopIteration:
             raise self.model.DoesNotExist('instance matching query does not exist:\nSQL: %s\nPARAMS: %s' % (
@@ -1060,14 +1060,14 @@ class SelectQuery(BaseQuery):
         else:
             query = self.query
         
-        if isinstance(query, basestring):
+        if isinstance(query, str):
             if query in ('*', self.model._meta.pk_name) and self.use_aliases():
                 return '%s.%s' % (alias_map[self.model], query)
             return query
         elif isinstance(query, dict):
             qparts = []
             aggregates = []
-            for model, cols in query.iteritems():
+            for model, cols in query.items():
                 alias = alias_map.get(model, '')
                 for col in cols:
                     if isinstance(col, tuple):
@@ -1171,7 +1171,7 @@ class UpdateQuery(BaseQuery):
     
     def parse_update(self):
         sets = {}
-        for k, v in self.update_query.iteritems():
+        for k, v in self.update_query.items():
             try:
                 field = self.model._meta.get_field_by_name(k)
             except AttributeError:
@@ -1191,7 +1191,7 @@ class UpdateQuery(BaseQuery):
         params = []
         update_params = []
 
-        for k, v in set_statement.iteritems():
+        for k, v in set_statement.items():
             params.append(v)
             update_params.append('%s=%s' % (k, self.interpolation))
         
@@ -1257,7 +1257,7 @@ class InsertQuery(BaseQuery):
     def parse_insert(self):
         cols = []
         vals = []
-        for k, v in self.insert_query.iteritems():
+        for k, v in self.insert_query.items():
             field = self.model._meta.get_field_by_name(k)
             cols.append(k)
             vals.append(field.db_value(v))
@@ -1355,7 +1355,7 @@ def filter_query(model_or_query, *args, **kwargs):
         elif isinstance(node_or_q, Q):
             new_query = {}
             curr_model = node_or_q.model or model
-            for raw_lookup, value in node_or_q.query.items():
+            for raw_lookup, value in list(node_or_q.query.items()):
                 query_model, joins, lookup = convert_lookup(curr_model, joins, raw_lookup)
                 new_query[lookup] = value
             node_or_q.model = query_model
@@ -1365,7 +1365,7 @@ def filter_query(model_or_query, *args, **kwargs):
         fix_q(node_or_q, joins)
     
     # iterate over keyword lookups and determine lookups and necessary joins
-    for raw_lookup, value in kwargs.items():
+    for raw_lookup, value in list(kwargs.items()):
         queried_model, joins, lookup = convert_lookup(model, joins, raw_lookup)
         query.setdefault(queried_model, [])
         query[queried_model].append((lookup, value))
@@ -1383,7 +1383,7 @@ def filter_query(model_or_query, *args, **kwargs):
     for node in args:
         select_query = select_query.where(node)
     
-    for model, lookups in query.items():
+    for model, lookups in list(query.items()):
         qargs, qkwargs = [], {}
         for lookup in lookups:
             if isinstance(lookup, tuple):
@@ -1409,7 +1409,7 @@ def annotate_query(select_query, related_model, aggregation):
     if isinstance(cols, dict):
         selection = cols
         group_by = cols[model]
-    elif isinstance(cols, basestring):
+    elif isinstance(cols, str):
         selection = {model: [cols]}
         if cols == '*':
             group_by = model
@@ -1528,7 +1528,7 @@ class DateTimeField(Field):
     db_field = 'datetime'
     
     def python_value(self, value):
-        if isinstance(value, basestring):
+        if isinstance(value, str):
             value = value.rsplit('.', 1)[0]
             return datetime(*time.strptime(value, '%Y-%m-%d %H:%M:%S')[:6])
         return value
@@ -1696,7 +1696,7 @@ class BaseModelOptions(object):
     def __init__(self, model_class, options=None):
         # configurable options
         options = options or {'database': database}
-        for k, v in options.items():
+        for k, v in list(options.items()):
             setattr(self, k, v)
         
         self.rel_fields = {}
@@ -1706,7 +1706,7 @@ class BaseModelOptions(object):
     
     
     def get_sorted_fields(self):
-        return sorted(self.fields.items(), key=lambda (k,v): (k == self.pk_name and 1 or 2, v._order))
+        return sorted(list(self.fields.items()), key=lambda k_v: (k_v[0] == self.pk_name and 1 or 2, k_v[1]._order))
     
     def get_field_names(self):
         return [f[0] for f in self.get_sorted_fields()]
@@ -1724,13 +1724,13 @@ class BaseModelOptions(object):
             return self.fields[self.rel_fields[name]]
     
     def get_related_field_for_model(self, model, name=None):
-        for field in self.fields.values():
+        for field in list(self.fields.values()):
             if isinstance(field, ForeignKeyField) and field.to == model:
                 if name is None or name == field.name or name == field.descriptor:
                     return field
     
     def get_reverse_related_field_for_model(self, model, name=None):
-        for field in model._meta.fields.values():
+        for field in list(model._meta.fields.values()):
             if isinstance(field, ForeignKeyField) and field.to == self.model_class:
                 if name is None or name == field.name or name == field.descriptor:
                     return field
@@ -1756,7 +1756,7 @@ class BaseModel(type):
             if not base_meta:
                 continue
             
-            for (k, v) in base_meta.__dict__.items():
+            for (k, v) in list(base_meta.__dict__.items()):
                 if k in cls.inheritable_options and k not in attr_dict:
                     attr_dict[k] = v
         
@@ -1769,7 +1769,7 @@ class BaseModel(type):
         
         _meta.pk_name = None
 
-        for name, attr in cls.__dict__.items():
+        for name, attr in list(cls.__dict__.items()):
             if isinstance(attr, Field):
                 attr.add_to_class(cls, name)
                 _meta.fields[attr.name] = attr
@@ -1784,7 +1784,7 @@ class BaseModel(type):
 
         _meta.model_name = cls.__name__
 
-        for field in _meta.fields.values():
+        for field in list(_meta.fields.values()):
             field.class_prepared()
                 
         if hasattr(cls, '__unicode__'):
@@ -1797,12 +1797,10 @@ class BaseModel(type):
         return cls
 
 
-class Model(object):
-    __metaclass__ = BaseModel
-    
+class Model(object, metaclass=BaseModel):
     def __init__(self, *args, **kwargs):
         self.get_field_dict()
-        for k, v in kwargs.items():
+        for k, v in list(kwargs.items()):
             setattr(self, k, v)
             
     @classmethod
@@ -1825,7 +1823,7 @@ class Model(object):
                 setattr(self, field.name, field_value)
             return (field.name, field_value)
         
-        pairs = map(get_field_val, self._meta.fields.values())
+        pairs = list(map(get_field_val, list(self._meta.fields.values())))
         return dict(pairs)
     
     @classmethod
@@ -1839,7 +1837,7 @@ class Model(object):
 
         cls._meta.database.create_table(cls)
         
-        for field_name, field_obj in cls._meta.fields.items():
+        for field_name, field_obj in list(cls._meta.fields.items()):
             if isinstance(field_obj, PrimaryKeyField):
                 cls._meta.database.create_index(cls, field_obj.name, True)
             elif isinstance(field_obj, ForeignKeyField):

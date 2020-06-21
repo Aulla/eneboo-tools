@@ -12,7 +12,7 @@ from enebootools import EnebooToolsInterface
 from enebootools.assembler import database as asmdb
 
 class AssemblerInterface(EnebooToolsInterface):
-    module_description = u"Herramientas de gestión de proyectos de mezcla"
+    module_description = "Herramientas de gestión de proyectos de mezcla"
     def __init__(self, setup_parser = True):
         EnebooToolsInterface.__init__(self, False)
         if setup_parser: self.setup_parser()
@@ -25,7 +25,7 @@ class AssemblerInterface(EnebooToolsInterface):
             args = ["subfoldername","description","patchurl"],
             options = [],
             min_argcount = 0,
-            description = u"Crea una nueva plantilla de funcionalidad",
+            description = "Crea una nueva plantilla de funcionalidad",
             call_function = self.do_new,
             )
 
@@ -39,7 +39,7 @@ class AssemblerInterface(EnebooToolsInterface):
             name = "build",
             args = ["feat","target"],
             options = [],
-            description = u"Construye el objetivo $target de la funcionalidad $feat",
+            description = "Construye el objetivo $target de la funcionalidad $feat",
             call_function = self.do_build,
             )
         self.build_action.set_help_arg(
@@ -52,7 +52,7 @@ class AssemblerInterface(EnebooToolsInterface):
             name = "save-fullpatch",
             args = ["feat"],
             options = [],
-            description = u"Para la funcionalidad $feat guarda los cambios como parche completo",
+            description = "Para la funcionalidad $feat guarda los cambios como parche completo",
             call_function = self.do_save_fullpatch,
             )
         self.build_action.set_help_arg(
@@ -65,7 +65,7 @@ class AssemblerInterface(EnebooToolsInterface):
             name = "test-deps",
             args = ["feat"],
             options = [],
-            description = u"Para la funcionalidad $feat analiza qué dependencias faltan",
+            description = "Para la funcionalidad $feat analiza qué dependencias faltan",
             call_function = self.do_test_deps,
             )
         self.test_deps_action.set_help_arg(
@@ -77,7 +77,7 @@ class AssemblerInterface(EnebooToolsInterface):
             name = "dbupdate",
             args = [],
             options = [],
-            description = u"Actualiza la base de datos de módulos y extensiones existentes",
+            description = "Actualiza la base de datos de módulos y extensiones existentes",
             call_function = self.do_dbupdate,
             )
             
@@ -85,7 +85,7 @@ class AssemblerInterface(EnebooToolsInterface):
             name = "list-objects",
             args = [],
             options = [],
-            description = u"Lista los objetos (módulos y funcionalidades) en la base de datos",
+            description = "Lista los objetos (módulos y funcionalidades) en la base de datos",
             call_function = self.do_list_objects,
             )
             
@@ -93,7 +93,7 @@ class AssemblerInterface(EnebooToolsInterface):
             name = "howto-build",
             args = ["feat","target"],
             options = [],
-            description = u"Explica los pasos a seguir para construir el objetivo $target de la funcionalidad $feat",
+            description = "Explica los pasos a seguir para construir el objetivo $target de la funcionalidad $feat",
             call_function = self.do_howto_build,
             )
         self.howto_build_action.set_help_arg(
@@ -107,43 +107,43 @@ class AssemblerInterface(EnebooToolsInterface):
     def do_dbupdate(self):
         try:
             return asmdb.update_database(self)
-        except Exception,e:
+        except Exception as e:
             self.exception(type(e).__name__,str(e))
 
     def do_list_objects(self):
         try:
             return asmdb.list_objects(self)
-        except Exception,e:
+        except Exception as e:
             self.exception(type(e).__name__,str(e))
 
     def do_howto_build(self, target, feat):
         try:
             return asmdb.do_howto_build(self,target, feat)
-        except Exception,e:
+        except Exception as e:
             self.exception(type(e).__name__,str(e))
 
     def do_build(self, target, feat):
         try:
             return asmdb.do_build(self,target, feat)
-        except Exception,e:
+        except Exception as e:
             self.exception(type(e).__name__,str(e))
 
     def do_save_fullpatch(self, feat):
         try:
             return asmdb.do_save_fullpatch(self, feat)
-        except Exception,e:
+        except Exception as e:
             self.exception(type(e).__name__,str(e))
 
     def do_test_deps(self, feat):
         try:
             return asmdb.test_deps(self, feat)
-        except Exception,e:
+        except Exception as e:
             self.exception(type(e).__name__,str(e))
 
     def do_new(self, subfoldername = None, description = None, patchurl = None):
         try:
             return asmdb.do_new(self, subfoldername, description, patchurl )
-        except Exception,e:
+        except Exception as e:
             self.exception(type(e).__name__,str(e))
 
 

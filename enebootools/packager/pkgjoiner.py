@@ -17,7 +17,7 @@ def from_uint32(number):
     number2 = to_uint32(text)
     try: assert(number == number2)
     except AssertionError:
-        print "ASSERT: number %d == number2 %d ... FAILED" % (number, number2)
+        print("ASSERT: number %d == number2 %d ... FAILED" % (number, number2))
         raise
     
     return text
@@ -61,8 +61,8 @@ def joinpkg(iface, packagefolder):
             write_compressed(f1, contents)
         sys.stdout.flush()
     f1.close()
-    print 
-    print  "Hecho. %d objetos empaquetados en %s" % (n,packagename)
+    print() 
+    print("Hecho. %d objetos empaquetados en %s" % (n,packagename))
     
         
 
@@ -97,7 +97,7 @@ def createpkg(iface, modulefolder):
         #modlines.append("<!-- Module %s -->\n" % module)
         inittag = False
         for line_iso in open(os.path.join(modulefolder, module)):
-            line_unicode = unicode(line_iso, "ISO-8859-15", "replace")
+            line_unicode = str(line_iso, "ISO-8859-15", "replace")
             line = line_unicode.encode("UTF-8")
             if line.find("<MODULE>") != -1: inittag = True
             if inittag: modlines.append(line)
@@ -117,7 +117,7 @@ def createpkg(iface, modulefolder):
         fpath = os.path.join(modulefolder,folder)
         files = find_files(fpath)
         modulename = re.search("^\w+",module).group(0)
-        print fpath, modulename
+        print(fpath, modulename)
         for filename in files:
             bname, ext = os.path.splitext( filename )
             if ext not in load_ext: 
@@ -149,7 +149,7 @@ def createpkg(iface, modulefolder):
         sys.stdout.write(".")
         sys.stdout.flush()
         write_compressed(f1, open(filepath).read())
-    print
+    print()
     # CLOSE
     f1.close()
-    print "Paquete creado. Extensiones ignoradas:", ignored_ext    
+    print("Paquete creado. Extensiones ignoradas:", ignored_ext)    

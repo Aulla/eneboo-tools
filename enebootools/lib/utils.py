@@ -12,7 +12,7 @@ def read_file_list(filepath, filename, errlog = None):
     fullfilename = os.path.join(filepath, filename)
     try:
         file1 = open(fullfilename, "rb")
-    except Exception, e:
+    except Exception as e:
         if errlog: errlog("Error al abrir el fichero %s" % fullfilename)
         return []
     txt = [ line.strip() for line in file1 ]

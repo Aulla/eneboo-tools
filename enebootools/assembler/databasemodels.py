@@ -1,6 +1,6 @@
 # encoding: UTF8
 import enebootools.lib.peewee as peewee
-from mypeewee import BaseModel
+from .mypeewee import BaseModel
 
 """
     - índices:

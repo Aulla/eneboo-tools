@@ -1,7 +1,7 @@
 #encoding: UTF-8
 from lxml import etree
 import lxml
-from StringIO import StringIO
+from io import StringIO
 from copy import deepcopy
 import os.path, time
 import difflib, re
@@ -23,7 +23,7 @@ def _xf(x, cstring = False, **kwargs): #xml-format
     if cstring:
         return value
     else:
-        return unicode(value , kwargs['encoding'])
+        return str(value , kwargs['encoding'])
 
 class XMLFormatParser(object):
     def __init__(self, iface, format, style, file1, rbt = True, recover = False):
@@ -39,10 +39,10 @@ class XMLFormatParser(object):
         filetext = file1.read()
         file_alike = StringIO(filetext)
         try:
-            unicode_text = unicode(filetext,self.encoding)
+            unicode_text = str(filetext,self.encoding)
         except Exception:
             new_encoding = "iso-8859-15" if self.encoding.lower().find("utf") != -1 else "utf-8"
-            unicode_text = unicode(filetext,new_encoding)
+            unicode_text = str(filetext,new_encoding)
             self.encoding = new_encoding
             
         try:
@@ -101,7 +101,7 @@ class XMLFormatParser(object):
         
     def _evaluate(self, elem, from_elem = None):
         if elem is None: return None
-        if not isinstance(elem.tag, basestring): return None
+        if not isinstance(elem.tag, str): return None
         if elem.text: text = elem.text.strip()
         else: text = ""
         
@@ -115,7 +115,7 @@ class XMLFormatParser(object):
         def sxpath(text,from_elem,**kwargs):
             try:
                 xlist = from_elem.xpath(text,**kwargs)
-            except Exception, e:
+            except Exception as e:
                 self.iface.exception("EvaluateError","Error evaluando  %s  %s" % (text, repr(kwargs)))
                 return None
             if isinstance(xlist, list):
@@ -150,11 +150,11 @@ class XMLFormatParser(object):
                 args = []
                 for subelem in elem:
                     value = self._evaluate(subelem,from_elem)
-                    if not isinstance(subelem.tag, basestring): continue
+                    if not isinstance(subelem.tag, str): continue
                     args.append(value)
                 try:
                     retval = format_string % tuple(args)
-                except TypeError, e:
+                except TypeError as e:
                     self.iface.error("Error ejecutando format2: %s %% %s" % (repr(format_string), repr(args)))
                     raise
                 return retval
@@ -164,7 +164,7 @@ class XMLFormatParser(object):
                 for subelem in elem:
                     value = self._evaluate(subelem,from_elem)
                     if value is not None and value != "": 
-                        if type(value) is unicode: value = value.encode("ascii","replace")
+                        if type(value) is str: value = value.encode("ascii","replace")
                         args.append(str(value))
                 return join_string.join(args)
             elif elem.tag == "value": return text
@@ -177,7 +177,7 @@ class XMLFormatParser(object):
                 else:
                     return kwvars.get('else')
             else: self.iface.warn("Descartando tag de evaluación desconocido: %s:%s" % (elem.tag,text))
-        except Exception, e:
+        except Exception as e:
             self.iface.exception("EvaluateError","Error evaluando  %s:%s" % (elem.tag,text))
             return None
 
@@ -195,14 +195,14 @@ class XMLFormatParser(object):
         #search_xpath = "(%s)[not(ancestor-or-self::context-information)]" % search_xpath
         try:
             search = list(root.xpath(search_xpath))
-        except Exception, e:
+        except Exception as e:
             self.iface.error("search_xpath: " + search_xpath)
             raise
         nsz = len(search)
         processed = 0
         #tinit = time.time()
         for element in search:
-            if not isinstance(element.tag, basestring): continue
+            if not isinstance(element.tag, str): continue
             parent = element.getparent()
             if parent is not None:
                 if parent.tag == "context-information": continue
@@ -222,13 +222,13 @@ class XMLFormatParser(object):
                 value = self.evaluate(ctxopt, element)
                 if value is None: continue
                 
-                ctxdict[name] = unicode(value)
-                element.set("ctx-info-" + name,unicode(value))
+                ctxdict[name] = str(value)
+                element.set("ctx-info-" + name,str(value))
                         
             #ctx = etree.SubElement(element, "context-information", entity = entity_name, **ctxdict)
             #context_items.append(ctx)
 
-            for name, value in ctxdict.items():
+            for name, value in list(ctxdict.items()):
                 ctx_pending_names.remove(name)
                 
             for name in ctx_pending_names:
@@ -297,7 +297,7 @@ class XMLFormatParser(object):
             parent.remove(element)
             
         for element in self.root.iter():
-            for k in element.attrib.keys()[:]:
+            for k in list(element.attrib.keys())[:]:
                 if k.startswith("ctx-"):
                     del element.attrib[k]
             # del element.attrib["ctx-id"]
@@ -387,7 +387,7 @@ class XMLFormatParser(object):
         idname = elem.get("ctx-id")
         if idname: return idname
         #if le: self.load_entities(elem)
-        if not isinstance(elem.tag,basestring): 
+        if not isinstance(elem.tag,str): 
             return elem.text
         else:
             idname = self.sname(elem, "id", elem.tag)
@@ -425,19 +425,19 @@ class XMLDiffer(object):
         self.xbase = XMLFormatParser(self.iface, self.format, self.style, file_base, rbt, recover = recover)
     
         if not self.xbase.validate():
-            self.iface.error(u"El fichero base no es válido para el formato %s" % (self.format.get("name")))
+            self.iface.error("El fichero base no es válido para el formato %s" % (self.format.get("name")))
             raise ValueError
         if not self.xbase.load_entities():
-            self.iface.error(u"Error al cargar entidades del formato %s (fichero base)" % (self.format.get("name")))
+            self.iface.error("Error al cargar entidades del formato %s (fichero base)" % (self.format.get("name")))
             raise ValueError
             
         self.xfinal = XMLFormatParser(self.iface, self.format, self.style, file_final, rbt, recover = recover)
 
         if not self.xfinal.validate():
-            self.iface.error(u"El fichero final no es válido para el formato %s" % (self.format.get("name")))
+            self.iface.error("El fichero final no es válido para el formato %s" % (self.format.get("name")))
             raise ValueError
         if not self.xfinal.load_entities():
-            self.iface.error(u"Error al cargar entidades del formato %s (fichero final)" % (self.format.get("name")))
+            self.iface.error("Error al cargar entidades del formato %s (fichero final)" % (self.format.get("name")))
             raise ValueError
         if file_patch:
             parser = etree.XMLParser(
@@ -470,7 +470,7 @@ class XMLDiffer(object):
     def final_output(self):
         if self.xfinal.root is not None: 
             doc = self.apply_pre_save_final(self.xfinal.root)
-            doctype = unicode(self.xfinal.tree.docinfo.doctype).encode(self.xfinal.encoding)
+            doctype = str(self.xfinal.tree.docinfo.doctype).encode(self.xfinal.encoding)
             if doctype: doctype += "\n"
             if isinstance(doc, etree._Element):
                 return doctype + _xf(doc,xml_declaration=False,cstring=True, encoding=self.xfinal.encoding)
@@ -536,7 +536,7 @@ class XMLDiffer(object):
         items["#text"] = textvalue
         #items["#textnfixes"] = textnfixes
         #items["#textdepth"] = textdepth
-        for k,v in elem.attrib.items():
+        for k,v in list(elem.attrib.items()):
             items["@%s" % k] = v
         return items
              
@@ -549,7 +549,7 @@ class XMLDiffer(object):
         base = self.get_elem_contents(base_elem)
         final = self.get_elem_contents(final_elem)
         if base == final: return True
-        for k, v in base.items()[:]:
+        for k, v in list(base.items())[:]:
             if k not in final: final[k] = None
             if final.get(k, None) == v: 
                 del final[k]
@@ -604,7 +604,7 @@ class XMLDiffer(object):
             newelem = deepcopy(subelem)
             updelem.append( newelem )
             for ie in newelem.iter():
-                for k in ie.attrib.keys():
+                for k in list(ie.attrib.keys()):
                     if k.startswith("ctx-info-"): 
                         del ie.attrib[k]
                     if k.startswith("ctx-id"): 
@@ -740,7 +740,7 @@ class XMLDiffer(object):
                             elist = element.xpath(tagname)
                             
                             try: newelement = elist[number]
-                            except Exception, e: 
+                            except Exception as e: 
                                 self.iface.warn(e)
                                 newelement = None
                                 
@@ -814,9 +814,9 @@ class XMLDiffer(object):
             alternatives = element.xpath("*/@ctx-id")
             close_matches = difflib.get_close_matches(searching, alternatives, 4, 0.4)
             if actionname == "delete":
-                self.iface.info(u"No se encontró elemento %s para %s entre %s" % (repr(searching),repr(actionname),close_matches))
+                self.iface.info("No se encontró elemento %s para %s entre %s" % (repr(searching),repr(actionname),close_matches))
             else:
-                self.iface.warn(u"No se encontró elemento %s para %s entre %s" % (repr(searching),repr(actionname),close_matches))
+                self.iface.warn("No se encontró elemento %s para %s entre %s" % (repr(searching),repr(actionname),close_matches))
             return
         
         if actionname == "update" and select == "text()":
@@ -891,25 +891,25 @@ class XMLDiffer(object):
     
     
 def diff_lxml(iface, base, final):
-    iface.debug(u"Diff LXML $base:%s $final:%s" % (base,final))
+    iface.debug("Diff LXML $base:%s $final:%s" % (base,final))
     root, ext1 = os.path.splitext(base)
     root, ext2 = os.path.splitext(final)
     if ext1 != ext2:
-        iface.warn(u"Comparando ficheros de extensiones diferentes.")
+        iface.warn("Comparando ficheros de extensiones diferentes.")
     
     formats = config_tree.xpath("/etc/formats/format[filetype/text()=$ext]/@name", ext=ext1)
     if len(formats) == 0:
-        iface.error(u"No tenemos ningún plugin que reconozca esta extensión")
+        iface.error("No tenemos ningún plugin que reconozca esta extensión")
         return
     if len(formats) > 1:
-        iface.warn(u"Había más de un formato y hemos probado el primero %s" % (repr(formats)))
+        iface.warn("Había más de un formato y hemos probado el primero %s" % (repr(formats)))
     format_name = formats[0]        
     format = config_tree.xpath("/etc/formats/format[@name=$format_name]", format_name=format_name)[0]
     
     try:
         file_base = open(base, "r")
         file_final = open(final, "r")
-    except IOError, e:
+    except IOError as e:
         iface.error("Error al abrir el fichero base o final: " + str(e))
         return
         
@@ -917,24 +917,24 @@ def diff_lxml(iface, base, final):
     style_name = iface.patch_xml_style_name
     styles = config_tree.xpath("/etc/patch-styles/patch-style[@name=$name]", name=style_name)
     if len(styles) == 0:
-        iface.error(u"No tenemos ningún estilo de patch que se llame %s" % style_name)
+        iface.error("No tenemos ningún estilo de patch que se llame %s" % style_name)
         return
     if len(styles) > 1:
-        iface.warn(u"Había más de un estilo con el nombre %s y hemos cargado el primero." % (repr(style_name)))
+        iface.warn("Había más de un estilo con el nombre %s y hemos cargado el primero." % (repr(style_name)))
     
     style= styles[0]
     try:
         xmldiff = XMLDiffer(iface, format, style, file_base = file_base, file_final = file_final)
-    except etree.XMLSyntaxError, e: 
-        iface.warn(u"Error parseando fichero XML: %s" % (str(e)))
-        iface.warn(u".. durante Diff LXML $base:%s $final:%s" % (base,final))
+    except etree.XMLSyntaxError as e: 
+        iface.warn("Error parseando fichero XML: %s" % (str(e)))
+        iface.warn(".. durante Diff LXML $base:%s $final:%s" % (base,final))
         try:
             file_base = open(base, "r")
             file_final = open(final, "r")
             xmldiff = XMLDiffer(iface, format, style, file_base = file_base, file_final = file_final, recover = True)
-        except etree.XMLSyntaxError, e: 
-            iface.error(u"Error parseando fichero XML: %s" % (str(e)))
-            iface.error(u".. durante Diff LXML $base:%s $final:%s" % (base,final))
+        except etree.XMLSyntaxError as e: 
+            iface.error("Error parseando fichero XML: %s" % (str(e)))
+            iface.error(".. durante Diff LXML $base:%s $final:%s" % (base,final))
             return False
     except ValueError:
         return False
@@ -954,7 +954,7 @@ def diff_lxml(iface, base, final):
             
     
 def patch_lxml(iface, patch, base):
-    iface.debug(u"Patch LXML $patch:%s $base:%s " % (patch, base))
+    iface.debug("Patch LXML $patch:%s $base:%s " % (patch, base))
     root, ext1 = os.path.splitext(base)
     
     formats = config_tree.xpath("/etc/formats/format[filetype/text()=$ext]/@name", ext=ext1)
@@ -962,7 +962,7 @@ def patch_lxml(iface, patch, base):
         iface.error("No tenemos ningún plugin que reconozca esta extensión")
         return
     if len(formats) > 1:
-        iface.warn(u"Había más de un formato y hemos probado el primero %s" % (repr(formats)))
+        iface.warn("Había más de un formato y hemos probado el primero %s" % (repr(formats)))
     format_name = formats[0]        
     format = config_tree.xpath("/etc/formats/format[@name=$format_name]", format_name=format_name)[0]
     
@@ -970,27 +970,27 @@ def patch_lxml(iface, patch, base):
         file_base = open(base, "r")
         file_final = open(base, "r")
         file_patch = open(patch, "r")
-    except IOError, e:
-        iface.error(u"Error al abrir el fichero base o parche: " + str(e))
+    except IOError as e:
+        iface.error("Error al abrir el fichero base o parche: " + str(e))
         return
         
     
     style_name = iface.patch_xml_style_name
     styles = config_tree.xpath("/etc/patch-styles/patch-style[@name=$name]", name=style_name)
     if len(styles) == 0:
-        iface.error(u"No tenemos ningún estilo de patch que se llame %s" % style_name)
+        iface.error("No tenemos ningún estilo de patch que se llame %s" % style_name)
         return
     if len(styles) > 1:
-        iface.warn(u"Había más de un estilo con el nombre %s y hemos cargado el primero." % (repr(style_name)))
+        iface.warn("Había más de un estilo con el nombre %s y hemos cargado el primero." % (repr(style_name)))
 
     file_base_sz = os.path.getsize(base)
     file_patch_sz = os.path.getsize(patch)
     
     if (file_base_sz < 32):
-        iface.error(u"Fichero BASE sólo tiene %d bytes (%r)" % (file_base_sz,base))
+        iface.error("Fichero BASE sólo tiene %d bytes (%r)" % (file_base_sz,base))
         return
     if (file_patch_sz < 32):
-        iface.error(u"Fichero BASE sólo tiene %d bytes (%r)" % (file_patch_sz,patch))
+        iface.error("Fichero BASE sólo tiene %d bytes (%r)" % (file_patch_sz,patch))
         return
     
     style= styles[0]

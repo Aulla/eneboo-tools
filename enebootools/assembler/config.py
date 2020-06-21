@@ -55,7 +55,7 @@ class MergetoolConfig(AutoConfigTemplate):
 
 
 def reloadConfig(saveTemplate = False):
-    import config as c # --> autoimportación.
+    from . import config as c # --> autoimportación.
     files = [ os.path.join(CONF_DIR, x) for x in c.config_filelist ]
     last_file = files[-1]
     if saveTemplate == "*template*":
