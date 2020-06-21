@@ -110,8 +110,8 @@ def uncompress(txt):
 
 def splitpkg(iface, packagefile):
     iface.info2("Separando paquete %s . . ." % packagefile)
-    f1 = open(packagefile)
-    version = read_string(f1)
+    f1 = open(packagefile, "rb")
+    version = read_string(f1).decode()
     foldername = packagefile+".contents"
     try:
         os.mkdir(foldername)
@@ -130,11 +130,11 @@ def splitpkg(iface, packagefile):
         if unzipped:
             sys.stdout.write("*")
             sys.stdout.flush()
-            open(os.path.join(foldername, "%04d.file" % n),"w").write(unzipped)
+            open(os.path.join(foldername, "%04d.file" % n),"wb").write(unzipped)
         else:            
             sys.stdout.write(".")
             sys.stdout.flush()
-            open(os.path.join(foldername, "%04d.text" % n),"w").write(text[:-1]+"\n")
+            open(os.path.join(foldername, "%04d.text" % n),"wb").write(text[:-1]+"\n".encode())
         #if n%50 == 0:
         #    sys.stdout.write("\n")
         #    sys.stdout.flush()
