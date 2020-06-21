@@ -6,9 +6,6 @@ import enebootools
 from enebootools import EnebooToolsInterface
 import sys, traceback
 
-reload(sys)  
-sys.setdefaultencoding('utf8')
-
 from enebootools.packager import pkgjoiner, pkgsplitter
 
 
