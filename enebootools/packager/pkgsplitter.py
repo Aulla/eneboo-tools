@@ -21,7 +21,8 @@ def extpath(name):
         '.ts': 'translations',
         '.txt': 'docs',
         '.ui': 'forms',
-        '.xml': '.'}
+        '.xml': '.',
+        '.xpm': '.'}
     if name in folder_ext: return folder_ext[name]
     return "other"
 
@@ -76,13 +77,7 @@ def modulepath(name):
         
 
 def to_uint32(text):
-    number = 0
-    for i, ch in enumerate(list(text)):
-        n = ord(ch)
-        byte = 3-i
-        n *= 2**(8*byte)
-        number += n
-    return number
+    return int.from_bytes(text, "big")
 
 def read_string(f1):
     txtsize = f1.read(4)
@@ -151,8 +146,8 @@ def splitpkg(iface, packagefile):
 def unpackpkg(iface, packagefile):
     iface.info2("Desempaquetando %s . . ." % packagefile)
 
-    f1 = open(packagefile)
-    version = read_string(f1)
+    f1 = open(packagefile, "rb")
+    version = read_string(f1).decode()
     foldername = packagefile+".unpacked"
     try:
         os.mkdir(foldername)
@@ -167,14 +162,14 @@ def unpackpkg(iface, packagefile):
         if text is None: break
         unzipped = uncompress(text)
         if unzipped:
-            if n == 1: modulos.feed_module(unzipped)
+            if n == 1: modulos.feed_module(unzipped.decode())
             if n == 2: 
                 modulos.feed_files(unzipped)
                 break
                 
             n+=1
         else:            
-            print("..", text)
+            print("..", text.decode())
     
     def get_next_file(f1=f1):
         text = read_string(f1)
@@ -223,7 +218,7 @@ class UnpackerClass(object):
             if l_description:
                 l_description[0].text = l_description[0].text.strip()
                 
-            open(os.path.join(path2,name+".mod"),"w").write(etree.tostring(module, pretty_print=True, encoding="iso-8859-15",xml_declaration=False))
+            open(os.path.join(path2,name+".mod"),"wb").write(etree.tostring(module, pretty_print=True, encoding="iso-8859-15",xml_declaration=False))
         
     def feed_files(self,xmlstring):
         parser = etree.XMLParser(
@@ -250,7 +245,7 @@ class UnpackerClass(object):
                 if not os.path.exists(path):
                     os.mkdir(path)
                 data = next_file()
-                open(os.path.join(path,f_text),"w").write(data)
+                open(os.path.join(path,f_text),"wb").write(data)
                 
             if f_binary: 
                 name, ext = os.path.splitext(f_binary)

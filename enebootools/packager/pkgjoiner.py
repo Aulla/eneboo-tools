@@ -7,21 +7,6 @@ from enebootools.lib.utils import find_files
 __package_header__ = "%s %s" % (__PROGRAM__NAME__, __version__)
 
 
-
-def from_uint32(number):
-    text = ""
-    for i in range(4):
-        byte = (number >> ((3 - i)*8) ) & 0xff 
-        ch = chr(byte)
-        text += ch
-    number2 = to_uint32(text)
-    try: assert(number == number2)
-    except AssertionError:
-        print("ASSERT: number %d == number2 %d ... FAILED" % (number, number2))
-        raise
-    
-    return text
-
 def write_compressed(f1, txt_or_bytes):
     data = txt_or_bytes.encode() if isinstance(txt_or_bytes, str) else txt_or_bytes
 
