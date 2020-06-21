@@ -64,7 +64,7 @@ Si tenemos cuenta en github, el procedimiento estándar para clonar los dos repo
 Si no tenemos cuenta en github, el procedimiento es::
     
     $ cd ~/git
-    $ git clone git://github.com/gestiweb/eneboo-tools.git
+    $ git clone git://github.com/yeboyebo/eneboo-tools.git
 
 
 Para instalar los comandos que tenemos en eneboo-tools es suficiente con 

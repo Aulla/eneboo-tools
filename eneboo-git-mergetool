@@ -105,6 +105,10 @@ if [ "$EXT" = "kut" ]; then
     MODE="xml"
 fi
 
+if [ "$EXT" = "py" ]; then
+    MODE="py"
+fi
+
 if [ ! -e $BASE ]; then
     exec kdiff3 $LOCAL $REMOTE -o $MERGED --auto
 fi
