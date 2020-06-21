@@ -1697,7 +1697,11 @@ class BaseModelOptions(object):
         # configurable options
         options = options or {'database': database}
         for k, v in list(options.items()):
-            setattr(self, k, v)
+            try:
+                setattr(self, k, v)
+            except Exception:
+                continue
+
         
         self.rel_fields = {}
         self.reverse_relations = {}

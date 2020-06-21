@@ -1,11 +1,8 @@
 # encoding: UTF-8
 import enebootools
 from enebootools import EnebooToolsInterface
-import sys, traceback
+import traceback
 
-
-reload(sys)  
-sys.setdefaultencoding('utf8')
 
 from enebootools.mergetool import flpatchqs, flpatchpy, flpatchtest, flpatchmodel, flpatchxml, flpatchlxml, flpatchdir, projectbuilder
 

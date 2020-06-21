@@ -32,7 +32,11 @@ class ConfigReader:
         
     def do_reload(self):
         self.configini = configparser.RawConfigParser()
-        ok_list = self.configini.read(self.filename_list)
+        try:
+            ok_list = self.configini.read(self.filename_list, encoding="UTF-8")
+        except Exception:
+            ok_list = self.configini.read(self.filename_list, encoding="ISO-8859-15")
+
         if set(ok_list) != set(self.filename_list):
             print("WARN: Uno o mas ficheros no se pudieron leer:", ", ".join([str(filename) for filename in set(self.filename_list) - set(ok_list)]))
 

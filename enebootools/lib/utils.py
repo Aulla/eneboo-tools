@@ -17,7 +17,7 @@ def read_file_list(filepath, filename, errlog = None):
         return []
     txt = [ line.strip() for line in file1 ]
     file1.close()
-    txt2 = [ line for line in txt if len(line) and not line.startswith("#") ]
+    txt2 = [ line for line in txt if len(line) and not line.startswith("#".encode()) ]
     return txt2
     
     
