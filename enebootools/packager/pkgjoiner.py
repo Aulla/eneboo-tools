@@ -22,22 +22,27 @@ def from_uint32(number):
     
     return text
 
-def write_compressed(f1, txt):
-    zipped_text = from_uint32( len(txt) ) + zlib.compress(txt)
-    write_string(f1,zipped_text, binary = True)
+def write_compressed(f1, txt_or_bytes):
+    data = txt_or_bytes.encode() if isinstance(txt_or_bytes, str) else txt_or_bytes
+
+    zipped_data = len(data).to_bytes(4, byteorder="big") + zlib.compress(data)
+    f1.write(len(zipped_data).to_bytes(4, byteorder="big"))
+    f1.write(zipped_data)
+    
+    #write_string(f1,zipped_text, binary = True)
+
 
 def write_string(f1, txt, binary = False):
     if binary:
         text = txt
     else:
-        text = txt.rstrip() + "\0"
-        if text == "\0": 
-            f1.write( from_uint32( 0 ) )
+        text = txt.rstrip()
+        if not text: 
+            f1.write( int(0).to_bytes(4, byteorder="big"))
             return
         
-    lentxt = from_uint32( len(text) )
-    f1.write(lentxt)
-    f1.write(text)
+    f1.write(len(text).to_bytes(4, byteorder="big"))
+    f1.write(text.encode())
 
     
 
@@ -72,7 +77,7 @@ def createpkg(iface, modulefolder):
     iface.info2("Creando paquete de módulos de %s . . ." % modulefolder)
     outputfile = modulefolder + ".eneboopkg"
     
-    f1 = open(outputfile, "w")
+    f1 = open(outputfile, "wb")
     # VERSION
     write_string(f1,__package_header__)
     
@@ -96,9 +101,7 @@ def createpkg(iface, modulefolder):
         # comentado para evitar posibles fallos:
         #modlines.append("<!-- Module %s -->\n" % module)
         inittag = False
-        for line_iso in open(os.path.join(modulefolder, module)):
-            line_unicode = str(line_iso, "ISO-8859-15", "replace")
-            line = line_unicode.encode("UTF-8")
+        for line in open(os.path.join(modulefolder, module), encoding="ISO-8859-15", errors="replace"):
             if line.find("<MODULE>") != -1: inittag = True
             if inittag: modlines.append(line)
             if line.find("</MODULE>") != -1: inittag = False
@@ -126,7 +129,7 @@ def createpkg(iface, modulefolder):
             
             file_basename = os.path.basename(filename)
             filepath = os.path.join(fpath,filename)
-            sha1text = hashlib.sha1(open(filepath).read()).hexdigest()
+            sha1text = hashlib.sha1(open(filepath, "rb").read()).hexdigest()
             sha1text = sha1text.upper()
             shasum+= sha1text
             file_list.append(filepath)
@@ -142,13 +145,13 @@ def createpkg(iface, modulefolder):
 <files>
 %s  <shasum>%s</shasum>
 </files>
-""" % (''.join(filelines), hashlib.sha1(shasum).hexdigest().upper()))
+""" % (''.join(filelines), hashlib.sha1(shasum.encode()).hexdigest().upper()))
     
     # FILE CONTENTS
     for filepath in file_list:
         sys.stdout.write(".")
         sys.stdout.flush()
-        write_compressed(f1, open(filepath).read())
+        write_compressed(f1, open(filepath, "rb").read())
     print()
     # CLOSE
     f1.close()
