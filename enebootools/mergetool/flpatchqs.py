@@ -223,7 +223,7 @@ def extract_class_decl_info(iface,text_lines):
 
 def file_reader(filename):
     try:
-        f1 = open(filename, "r")
+        f1 = open(filename, "r", encoding="ISO-8859-15", errors="replace")
     except IOError as e: 
         raise ValueError("File Not Found: %s" % repr(filename))
         return
@@ -1621,11 +1621,11 @@ def patch_qs(iface, base, patch):
             iface.warn("La tarea %s no se ejecutó o se desconoce cómo hacerlo." % repr(task))
     line = ""
     for line in flbase:
-        iface.output.write(line)
-        iface.output.write("\n")
+        iface.output.write(line.encode("ISO-8859-15"))
+        iface.output.write("\n".encode("ISO-8859-15"))
         
     if line:
-        iface.output.write("\n")
+        iface.output.write("\n".encode("ISO-8859-15"))
     
     return True
     

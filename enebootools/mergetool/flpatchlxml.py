@@ -36,14 +36,17 @@ class XMLFormatParser(object):
         self.time_sname = 0
         self.time_evaluate = 0
         file1.seek(0)
-        filetext = file1.read()
-        file_alike = StringIO(filetext)
+        filedata = file1.read()
+        #filetext = filedata.decode(self.encoding)
+        
         try:
-            unicode_text = str(filetext,self.encoding)
+            unicode_text = filedata.decode(self.encoding)
         except Exception:
             new_encoding = "iso-8859-15" if self.encoding.lower().find("utf") != -1 else "utf-8"
-            unicode_text = str(filetext,new_encoding)
+            unicode_text = filedata.decode(new_encoding)
             self.encoding = new_encoding
+        
+        file_alike = StringIO(unicode_text)
             
         try:
             self.parser = etree.XMLParser(
@@ -471,7 +474,7 @@ class XMLDiffer(object):
         if self.xfinal.root is not None: 
             doc = self.apply_pre_save_final(self.xfinal.root)
             doctype = str(self.xfinal.tree.docinfo.doctype).encode(self.xfinal.encoding)
-            if doctype: doctype += "\n"
+            if doctype: doctype += b"\n"
             if isinstance(doc, etree._Element):
                 return doctype + _xf(doc,xml_declaration=False,cstring=True, encoding=self.xfinal.encoding)
             else:
@@ -967,9 +970,9 @@ def patch_lxml(iface, patch, base):
     format = config_tree.xpath("/etc/formats/format[@name=$format_name]", format_name=format_name)[0]
     
     try:
-        file_base = open(base, "r")
-        file_final = open(base, "r")
-        file_patch = open(patch, "r")
+        file_base = open(base, "rb")
+        file_final = open(base, "rb")
+        file_patch = open(patch, "rb")
     except IOError as e:
         iface.error("Error al abrir el fichero base o parche: " + str(e))
         return

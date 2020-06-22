@@ -88,7 +88,7 @@ class EnebooToolsInterface(object):
               
     def set_output_file(self, filename):
         self.output_file_name = filename
-        self.output = open(filename, "w")
+        self.output = open(filename, "wb")
 
     def set_verbose(self):
         self.verbosity += 1
