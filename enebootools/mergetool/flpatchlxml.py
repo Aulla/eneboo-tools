@@ -86,7 +86,7 @@ class XMLFormatParser(object):
             result = self.evaluate(elem)
             if type(result) is object: result = bool(result is None)
             if not result: 
-                self.iface.debug("Fallo al validar la regla %s" % etree.tostring(elem))
+                self.iface.debug("Fallo al validar la regla %s" % etree.tostring(elem, encoding="unicode"))
                 return False
             else:
                 self.iface.debug2("OK Regla %s:%s" % (elem.tag,elem.text.strip()))
@@ -99,7 +99,6 @@ class XMLFormatParser(object):
         t2 = time.time()
         tdelta = (t2-t1) 
         self.time_evaluate += tdelta
-
         return ret
         
     def _evaluate(self, elem, from_elem = None):
@@ -107,7 +106,7 @@ class XMLFormatParser(object):
         if not isinstance(elem.tag, str): return None
         if elem.text: text = elem.text.strip()
         else: text = ""
-        
+
         elem_patch_style = elem.get("patch-style")
         if elem_patch_style and self.style.attrib['name'] not in elem_patch_style.split(" "):
             return None
@@ -121,6 +120,7 @@ class XMLFormatParser(object):
             except Exception as e:
                 self.iface.exception("EvaluateError","Error evaluando  %s  %s" % (text, repr(kwargs)))
                 return None
+            
             if isinstance(xlist, list):
                 if len(xlist): return xlist[0]
                 else: return None
@@ -168,7 +168,7 @@ class XMLFormatParser(object):
                     value = self._evaluate(subelem,from_elem)
                     if value is not None and value != "": 
                         if type(value) is str: value = value.encode("ascii","replace")
-                        args.append(str(value))
+                        args.append(value.decode())
                 return join_string.join(args)
             elif elem.tag == "value": return text
             elif elem.tag == "if-then-else": 
@@ -805,7 +805,7 @@ class XMLDiffer(object):
             return
         select = _select = action.get("select")
         if select is None:
-            self.iface.warn("Falta atributo 'select' en " + etree.tostring(action))
+            self.iface.warn("Falta atributo 'select' en " + etree.tostring(action, encoding="unicode"))
             return
         element, select = self.resolve_select2(self.xfinal.root, select)
         #if '/' in select:
@@ -910,8 +910,8 @@ def diff_lxml(iface, base, final):
     format = config_tree.xpath("/etc/formats/format[@name=$format_name]", format_name=format_name)[0]
     
     try:
-        file_base = open(base, "r")
-        file_final = open(final, "r")
+        file_base = open(base, "rb")
+        file_final = open(final, "rb")
     except IOError as e:
         iface.error("Error al abrir el fichero base o final: " + str(e))
         return
@@ -932,8 +932,8 @@ def diff_lxml(iface, base, final):
         iface.warn("Error parseando fichero XML: %s" % (str(e)))
         iface.warn(".. durante Diff LXML $base:%s $final:%s" % (base,final))
         try:
-            file_base = open(base, "r")
-            file_final = open(final, "r")
+            file_base = open(base, "rb")
+            file_final = open(final, "rb")
             xmldiff = XMLDiffer(iface, format, style, file_base = file_base, file_final = file_final, recover = True)
         except etree.XMLSyntaxError as e: 
             iface.error("Error parseando fichero XML: %s" % (str(e)))
@@ -945,7 +945,14 @@ def diff_lxml(iface, base, final):
     patch = xmldiff.compare()
     if len(patch) == 0: return -1
     #xbase.clean()
-    iface.output.write(xmldiff.patch_output())
+    data_bytes = None
+    file_encode = format.xpath("@encoding")[0]
+    try:
+        data_bytes = xmldiff.patch_output().encode(encoding=file_encode)
+    except:
+        file_encode = "ISO-8859-15" if file_encode.lower() == "uft-8" else "UTF-8"
+        data_bytes = xmldiff.patch_output().encode(encoding=file_encode)
+    iface.output.write(data_bytes)
     return True
 
 
@@ -1007,7 +1014,6 @@ def patch_lxml(iface, patch, base):
     xmldiff.apply_patch()
 
     t2 = time.time()
-    
     iface.output.write(xmldiff.final_output())
 
     tend = time.time()

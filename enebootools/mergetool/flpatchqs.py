@@ -1022,12 +1022,12 @@ def diff_qs_dir(iface, base, final):
     # 4.- Agregar clases
     if clases_eliminadas: 
         iface.debug("Clases eliminadas: " + ", ".join(clases_eliminadas))
-        iface.output.write("@@remove-classes\n")
+        iface.output.write(b"@@remove-classes\n")
         for cls in classlist1:
             if cls in clases_eliminadas: code = "- "
             else: code = "  "
-            iface.output.write("%s%s\n" % (code,cls))
-        iface.output.write("..\n")
+            iface.output.write(str("%s%s\n" % (code,cls)).encode("ISO-8859-15"))
+        iface.output.write(b"..\n")
         
     for c in clases_eliminadas: classlist1a.remove(c)
     for c in clases_agregadas: classlist2a.remove(c)
@@ -1045,21 +1045,21 @@ def diff_qs_dir(iface, base, final):
     
     move_actions = get_move_actions(classlist1b_n,classlist2b)
     if move_actions:
-        iface.output.write("@@move-classes\n")
+        iface.output.write(b"@@move-classes\n")
         for move_action in move_actions:
             iface.debug("Clases movidas: " + repr(move_action))
             cl2move, relation, clctx = move_action
-            iface.output.write("  %s (%s) %s\n" % (",".join(cl2move),relation,",".join(clctx)))
-        iface.output.write("..\n")
+            iface.output.write(str("  %s (%s) %s\n" % (",".join(cl2move),relation,",".join(clctx))).encode("ISO-8859-15"))
+        iface.output.write(b"..\n")
         
     if clases_agregadas: 
         iface.debug("Clases agregadas: " + ", ".join(clases_agregadas))
-        iface.output.write("@@add-classes\n")
+        iface.output.write(b"@@add-classes\n")
         for cls in classlist2:
             if cls in clases_agregadas: code = "+ "
             else: code = "  "
-            iface.output.write("%s%s\n" % (code,cls))
-        iface.output.write("..\n")
+            iface.output.write(str("%s%s\n" % (code,cls)).encode("ISO-8859-15"))
+        iface.output.write(b"..\n")
 
 
     
@@ -1075,7 +1075,7 @@ def diff_qs_dir(iface, base, final):
         changed_lines = [ (n,line) for n,line in enumerate(diff) if line[0:2] not in ['  '] and len(line[1:].rstrip())>1 ]
         if changed_lines:
             iface.debug(" ##### FICHERO %s.qs #####" % cls)
-            iface.output.write("@@patch-class %s\n" % cls)
+            iface.output.write(str("@@patch-class %s\n" % cls).encode("ISO-8859-15"))
             unprinted_lines = list(range(len(diff)))
             for n,ld in changed_lines:
                 if n not in unprinted_lines: continue
@@ -1089,19 +1089,19 @@ def diff_qs_dir(iface, base, final):
                         omlines = prev_lines[:prev_lines.index(j)]
                         omlines_A = omlines[:10]
                         omlines_B = omlines[-10:]
-                        for k in omlines_A: iface.output.write(diff[k])
-                        iface.output.write("== %d lines ==\n" % (omitted-20))
-                        for k in omlines_B: iface.output.write(diff[k])
+                        for k in omlines_A: iface.output.write(str(diff[k]).encode("ISO-8859-15"))
+                        iface.output.write(str("== %d lines ==\n" % (omitted-20)).encode("ISO-8859-15"))
+                        for k in omlines_B: iface.output.write(str(diff[k]).encode("ISO-8859-15"))
                     else:
                         for k in prev_lines[:prev_lines.index(j)]:
-                            iface.output.write(diff[k])
+                            iface.output.write(str(diff[k]).encode("ISO-8859-15"))
                     for k in prev_lines[prev_lines.index(j):]:
-                        iface.output.write(diff[k])
+                        iface.output.write(str(diff[k]).encode("ISO-8859-15"))
                 else:
                     for k in prev_lines:
-                        iface.output.write(diff[k])
+                        iface.output.write(str(diff[k]).encode("ISO-8859-15"))
                 unprinted_lines[:idx+1] = []
-                iface.output.write(diff[n])
+                iface.output.write(str(diff[n]).encode("ISO-8859-15"))
 
                 post_lines = [ x for x in unprinted_lines if x > n ]
                 end = False
@@ -1111,7 +1111,7 @@ def diff_qs_dir(iface, base, final):
                         end = True
                     if end and count > 1: break
                     
-                    iface.output.write(diff[b])
+                    iface.output.write(str(diff[b]).encode("ISO-8859-15"))
                     unprinted_lines.remove(b)
                     if diff[b][0:2] == "  ": count += 1
                     else: 
@@ -1120,24 +1120,24 @@ def diff_qs_dir(iface, base, final):
                 
                         
                 
-            iface.output.write("..\n")
+            iface.output.write(b"..\n")
             iface.debug("-")
             
     for cls in clases_eliminadas:
         file1 = openr(base,cls + ".qs")
-        iface.output.write("@@removed-class %s\n" % cls)        
+        iface.output.write(str("@@removed-class %s\n" % cls).encode("ISO-8859-15"))        
         for line in file1:
-            iface.output.write("  %s" % line)        
-        iface.output.write("..\n")
+            iface.output.write(str("  %s" % line).encode("ISO-8859-15"))        
+        iface.output.write(b"..\n")
                 
     for cls in clases_agregadas:
         file1 = openr(final,cls + ".qs")
-        iface.output.write("@@added-class %s\n" % cls)        
+        iface.output.write(str("@@added-class %s\n" % cls).encode("ISO-8859-15"))        
         for line in file1:
-            iface.output.write("  %s" % line)        
-        iface.output.write("..\n")
+            iface.output.write(str("  %s" % line).encode("ISO-8859-15"))        
+        iface.output.write(b"..\n")
             
-    iface.output.write("\n")
+    iface.output.write(b"\n")
     return True        
     
     
@@ -1173,9 +1173,9 @@ def extract_classes(iface,clfinal,flfinal,classes2extract, classes2delete = []):
         iface_line = clfinal['iface']['line']
 
     for clname in classes2delete:
-        iface.output.write("\n")
-        iface.output.write("/** @delete_class %s */" % clname)
-        iface.output.write("\n")
+        iface.output.write(b"\n")
+        iface.output.write(str("/** @delete_class %s */" % clname).encode("ISO-8859-15"))
+        iface.output.write(b"\n")
     
         
     for clname in classes2extract:
@@ -1187,6 +1187,7 @@ def extract_classes(iface,clfinal,flfinal,classes2extract, classes2delete = []):
         iface.debug2r(exported_block=clfinal['list'][block_decl])
         
         lines = flfinal[idx1:idx2]
+
         if iface_line >= idx1 and iface_line < idx2:
             # Excluir la definición "iface" del parche, en caso de que estuviese dentro
             rel_line = iface_line - idx1
@@ -1197,9 +1198,9 @@ def extract_classes(iface,clfinal,flfinal,classes2extract, classes2delete = []):
         while lines[-1].strip() == "": del lines[-1]
 
         text = "\n".join(lines) 
-        iface.output.write("\n")
-        iface.output.write(text)
-        iface.output.write("\n")
+        iface.output.write(b"\n")
+        iface.output.write(text.encode(encoding="ISO-8859-15"))
+        iface.output.write(b"\n")
         
     
     for clname in classes2extract:
@@ -1214,11 +1215,11 @@ def extract_classes(iface,clfinal,flfinal,classes2extract, classes2delete = []):
         while lines[-1].strip() == "": del lines[-1]
 
         text = "\n".join(lines) 
-        iface.output.write("\n")
-        iface.output.write(text)
-        iface.output.write("\n")
+        iface.output.write(b"\n")
+        iface.output.write(text.encode())
+        iface.output.write(b"\n")
         
-    iface.output.write("\n")
+    iface.output.write(b"\n")
     return True
         
 
