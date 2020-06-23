@@ -11,7 +11,7 @@ def filepath(): return os.path.abspath(os.path.dirname(__file__))
 def filedir(x): return os.path.abspath(os.path.join(filepath(),x))
 
 def hash_file(dirname, filename):
-    f1 = open(os.path.join(dirname, filename))
+    f1 = open(os.path.join(dirname, filename), "rb")
     sha = hashlib.sha224()
     while True:
         chunk = f1.read(4096)
@@ -415,7 +415,7 @@ class FolderCreatePatch(object):
             if tdelta > 1:
                 self.iface.debug("La operación tomó %.2f segundos" % tdelta)
                 
-        f1 = open(self.patch_filename,"w")
+        f1 = open(self.patch_filename,"wb")
         f1.write(_xf(self.root,xml_declaration=False,cstring=True,encoding=self.encoding))
         f1.close()
 

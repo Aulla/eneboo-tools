@@ -143,7 +143,7 @@ def do_howto_build(iface,target, feat):
         iface.error("Error al buscar %s -> %s" % (feat,target))
         return False
     iface.info("Acciones para compilar funcionalidad %s %s:" % (feat, target))
-    iface.msg(etree.tostring(build_instructions, pretty_print=True))
+    iface.msg(etree.tostring(build_instructions, pretty_print=True, encoding = "UTF-8"))
     buildpath = os.path.join(build_instructions.get("path"), "build")
     if not os.path.exists(buildpath):
         os.mkdir(buildpath)
@@ -197,7 +197,7 @@ def uinput(question, possible_values = None):
     elif isinstance(possible_values, str):       
         if possible_values == "os.path":
             completer1.enable_path_completer()
-    text= input(str(question).encode(output_encoding)).decode(output_encoding)
+    text= input(question)
     completer1.disable_completer()
     return text
 
@@ -729,12 +729,12 @@ def do_new(iface, subfoldername = None, description = None, patchurl = None):
 def create_new_feature(path, fcode, fname, ftype, fdesc, fdep_modules, fdep_features, fload_patch):
     
     os.mkdir(path)
-    f_ini = open(os.path.join(path, "%s.feature.ini" % fname),"w")
+    f_ini = open(os.path.join(path, "%s.feature.ini" % fname),"w", encoding="UTF-8")
     f_ini.write("[feature]\n")
-    f_ini.write("type=%s\n" % ftype.encode("UTF-8"))
-    f_ini.write("code=%s\n" % fcode.encode("UTF-8"))
-    f_ini.write("name=%s\n" % fname.encode("UTF-8"))
-    f_ini.write("description=%s\n" % fdesc.encode("UTF-8"))
+    f_ini.write("type=%s\n" % ftype)
+    f_ini.write("code=%s\n" % fcode)
+    f_ini.write("name=%s\n" % fname)
+    f_ini.write("description=%s\n" % fdesc)
     f_ini.write("\n")
     f_ini.close()
     patchespath = os.path.join(path, "patches")

@@ -93,7 +93,7 @@ def module_checksum(iface):
     
     xmlparser = etree.XMLParser(ns_clean=True, remove_blank_text=True,remove_comments=True,remove_pis=True)
 
-    xmltext = etree.tostring(xmlroot, pretty_print=True)     
+    xmltext = etree.tostring(xmlroot, pretty_print=True, encoding = "UTF-8")     
     
     # Comprobar si alguno de los que ya existe coincide semanticamente con lo que vamos a crear:    
     newtree = etree.parse(StringIO(xmltext), parser = xmlparser)
@@ -198,7 +198,7 @@ def add_certificate(iface, pemfile):
     xmlcertificate.text = "\n" + cert1.as_pem() + "  "
     
     
-    xmltext = etree.tostring(xmlcert_root, pretty_print=True)     
+    xmltext = etree.tostring(xmlcert_root, pretty_print=True,encoding = "UTF-8")     
     f1 = open(certificates_file, "w")
     f1.write(xmltext)
     f1.close()
@@ -267,7 +267,7 @@ def create_signature_options(iface):
     
     
     
-    xmltext = etree.tostring(xmlroot, pretty_print=True)     
+    xmltext = etree.tostring(xmlroot, pretty_print=True, encoding = "UTF-8")     
     
     return xmltext
     
@@ -380,7 +380,7 @@ def add_signature(iface,certpem,pkeypem):
         
         
     
-    xmltext = etree.tostring(xmlsign_root, pretty_print=True)     
+    xmltext = etree.tostring(xmlsign_root, pretty_print=Trueencoding = "UTF-8")     
     f1 = open(signatures_file, "w")
     f1.write(xmltext)
     f1.close()
