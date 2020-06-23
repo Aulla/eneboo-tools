@@ -21,7 +21,6 @@ def download_images(filename):
             binary = binascii.unhexlify(hexdata)        
             img_filename = imgname+"."+dataformat
             f1 = open(img_filename,"wb")
-            print("*", img_filename)
             f1.write(binary)
             f1.close()
             print("Image file %s written." % (img_filename))
