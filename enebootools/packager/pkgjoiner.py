@@ -57,10 +57,23 @@ def joinpkg(iface, packagefolder):
         
 
 def createpkg(iface, modulefolder):
-    if modulefolder.endswith("/"): modulefolder=modulefolder[:-1]
-    if modulefolder.endswith("\\"): modulefolder=modulefolder[:-1]
-    iface.info2("Creando paquete de módulos de %s . . ." % modulefolder)
-    outputfile = modulefolder + ".eneboopkg"
+    module_folder_list = []
+    if modulefolder.find(",") > -1:
+        module_folder_list = modulefolder.split(",")
+    else:
+        module_folder_list.append(modulefolder)
+    
+    current_list = list(module_folder_list)
+    module_folder_list = []
+
+    for current_folder in current_list:
+        if current_folder.endswith(("/", "\\")): 
+            current_folder=current_folder[:-1]
+
+        module_folder_list.append(current_folder)
+
+    iface.info2("Creando paquete de módulos de %s . . ." % ", ".join(module_folder_list))
+    outputfile = module_folder_list[0] + ".eneboopkg"
     
     f1 = open(outputfile, "wb")
     # VERSION
@@ -76,20 +89,29 @@ def createpkg(iface, modulefolder):
     write_string(f1,"")
 
     # MODULES
-    modules = find_files(modulefolder, "*.mod", True)
+    modules = []
+    for modulefolder in module_folder_list:
+        modules = modules + find_files(modulefolder, "*.mod", True)
+    
     file_folders = []
     modnames = []
     modlines = []
     for module in sorted(modules):
         file_folders.append(os.path.dirname(module))
+
         modnames.append(os.path.basename(module))
         # comentado para evitar posibles fallos:
         #modlines.append("<!-- Module %s -->\n" % module)
         inittag = False
-        for line in open(os.path.join(modulefolder, module), encoding="ISO-8859-15", errors="replace"):
-            if line.find("<MODULE>") != -1: inittag = True
-            if inittag: modlines.append(line)
-            if line.find("</MODULE>") != -1: inittag = False
+        for modulefolder in module_folder_list:
+            if not os.path.exists(os.path.join(modulefolder, module)):
+                continue
+            for line in open(os.path.join(modulefolder, module), encoding="ISO-8859-15", errors="replace"):
+                if line.find("<MODULE>") != -1: inittag = True
+                if inittag: modlines.append(line)
+                if line.find("</MODULE>") != -1: inittag = False
+            
+            break
     
     write_compressed(f1, """<!DOCTYPE modules_def>
 <modules>
@@ -102,7 +124,13 @@ def createpkg(iface, modulefolder):
     ignored_ext = set([])
     load_ext = set(['.qs', '.mtd', '.ts', '.ar', '.kut', '.qry', '.ui', '.xml', '.xpm', '.py'])
     for folder, module in zip(file_folders,modnames):
-        fpath = os.path.join(modulefolder,folder)
+        fpath = ""
+        for modulefolder in module_folder_list:
+            if not os.path.exists(os.path.join(modulefolder, module)):
+                continue
+            fpath = os.path.join(modulefolder,folder)
+            break
+
         files = find_files(fpath)
         modulename = re.search("^\w+",module).group(0)
         print(fpath, modulename)

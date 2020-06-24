@@ -1,5 +1,5 @@
 # encoding: UTF-8
-__version__ = "1.0.1"
+__version__ = "1.1.0"
 __PROGRAM__NAME__ = "Eneboo Tools Packager"
 
 import enebootools
@@ -32,7 +32,7 @@ class PackagerInterface(EnebooToolsInterface):
             name = "create",
             args = ["modulefolder"],
             options = [],
-            description = "Lee la carpeta $modulefolder, examina los módulos y los empaqueta",
+            description = "Lee la carpeta $modulefolder (multiples carpetas separandolas con comas), examina los módulos y los empaqueta",
             call_function = self.do_create,
             )
         self.create_action.set_help_arg(
