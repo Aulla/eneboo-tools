@@ -215,7 +215,7 @@ class UnpackerClass(object):
             if not os.path.exists(path2):
                 os.mkdir(path2)
             l_description = module.xpath("description")
-            if l_description:
+            if l_description and l_description[0].text:
                 l_description[0].text = l_description[0].text.strip()
                 
             open(os.path.join(path2,name+".mod"),"wb").write(etree.tostring(module, pretty_print=True, encoding="iso-8859-15",xml_declaration=False))
@@ -253,7 +253,7 @@ class UnpackerClass(object):
                 data = next_file()
                 if not os.path.exists(path):
                     os.mkdir(path)
-                open(os.path.join(path,f_binary),"w").write(data)
+                open(os.path.join(path,f_binary),"wb").write(data)
             
             
     
