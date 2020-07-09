@@ -150,6 +150,7 @@ def createpkg(iface, modulefolder):
     <module>%s</module>
     <name>%s</name>
     <text>%s</text>
+    <skip>false</skip>
     <shatext>%s</shatext>
   </file>
 """ % (modulename, file_basename, file_basename, sha1text))
