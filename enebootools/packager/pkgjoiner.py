@@ -56,7 +56,7 @@ def joinpkg(iface, packagefolder):
     
         
 
-def createpkg(iface, modulefolder):
+def createpkg(iface, modulefolder, dst_file):
     module_folder_list = []
     if modulefolder.find(",") > -1:
         module_folder_list = modulefolder.split(",")
@@ -75,6 +75,9 @@ def createpkg(iface, modulefolder):
     iface.info2("Creando paquete de módulos de %s . . ." % ", ".join(module_folder_list))
     outputfile = module_folder_list[0] + ".eneboopkg"
     
+    if dst_file:
+        outputfile = dst_file
+
     f1 = open(outputfile, "wb")
     # VERSION
     write_string(f1,__package_header__)
@@ -169,4 +172,4 @@ def createpkg(iface, modulefolder):
     print()
     # CLOSE
     f1.close()
-    print("Paquete creado. Extensiones ignoradas:", ignored_ext)    
+    print("Paquete %s creado. Extensiones ignoradas: %s " % (outputfile, ignored_ext))    

@@ -23,6 +23,7 @@ class PackagerInterface(EnebooToolsInterface):
     module_description = "Herramientas para empaquetar y desempaquetar ficheros .eneboopkg"
     def __init__(self, setup_parser = True):
         EnebooToolsInterface.__init__(self, False)
+        self.dst_file = None
         if setup_parser: self.setup_parser()
         
     def setup_parser(self):
@@ -30,14 +31,17 @@ class PackagerInterface(EnebooToolsInterface):
 
         self.create_action = self.parser.declare_action(
             name = "create",
-            args = ["modulefolder"],
+            args = ["modulefolder", "filename"],
             options = [],
+            min_argcount = 1,
             description = "Lee la carpeta $modulefolder (multiples carpetas separandolas con comas), examina los módulos y los empaqueta",
             call_function = self.do_create,
             )
+
         self.create_action.set_help_arg(
             modulefolder = "Carpeta que leer para empaquetar su contenido",
-            )                
+            filename = "(opcional) Fichero destino"
+            )         
 
         self.create_action = self.parser.declare_action(
             name = "unpack",
@@ -72,13 +76,14 @@ class PackagerInterface(EnebooToolsInterface):
         self.join_action.set_help_arg(
             packagefolder = "Carpeta que leer para empaquetar su contenido",
             )                
-            
+
+    
               
     # :::: ACTIONS ::::
     
-    def do_create(self, modulefolder):
+    def do_create(self, modulefolder, filename=None):
         try:
-            return pkgjoiner.createpkg(self, modulefolder)
+            return pkgjoiner.createpkg(self, modulefolder, filename)
         except Exception as e:
             self.exception(type(e).__name__,str(e))
     
