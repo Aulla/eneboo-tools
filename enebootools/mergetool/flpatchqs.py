@@ -1198,6 +1198,12 @@ def extract_classes(iface,clfinal,flfinal,classes2extract, classes2delete = []):
         while lines[-1].strip() == "": del lines[-1]
 
         text = "\n".join(lines) 
+        try:
+           text = text.encode(encoding="ISO-8859-15").decode()
+        except:
+            pass
+
+
         iface.output.write(b"\n")
         iface.output.write(text.encode(encoding="ISO-8859-15"))
         iface.output.write(b"\n")
@@ -1216,7 +1222,7 @@ def extract_classes(iface,clfinal,flfinal,classes2extract, classes2delete = []):
 
         text = "\n".join(lines) 
         iface.output.write(b"\n")
-        iface.output.write(text.encode())
+        iface.output.write(text.encode(encoding="ISO-8859-15"))
         iface.output.write(b"\n")
         
     iface.output.write(b"\n")
