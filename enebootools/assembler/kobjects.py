@@ -80,7 +80,7 @@ class BaseObject(object):
             if self.type == "prj":
                 for n in new_reqs:
                     if n in self.required_modules: continue
-                    self.iface.warn("Proyecto %s, se agrega modulo %s solicitado por %s" % (self.formal_name(),n,modname))
+                    self.iface.debug("Proyecto %s, se agrega modulo %s solicitado por %s" % (self.formal_name(),n,modname))
             
             req += new_reqs
             myreq.append(obj.formal_name())
@@ -96,7 +96,7 @@ class BaseObject(object):
             if self.type == "prj":
                 for n in new_reqs:
                     if n in self.required_modules: continue
-                    self.iface.warn("Proyecto %s, se agrega modulo %s solicitado por funcionalidad %s" % (self.formal_name(),n,featname))
+                    self.iface.debug("Proyecto %s, se agrega modulo %s solicitado por funcionalidad %s" % (self.formal_name(),n,featname))
             req += new_reqs
             
         req += [ modulename for modulename in myreq if modulename not in req ]
@@ -116,7 +116,7 @@ class BaseObject(object):
             if self.type == "prj":
                 for n in new_reqs:
                     if n in self.required_features: continue
-                    self.iface.warn("Proyecto %s, se agrega funcionalidad %s solicitada por %s" % (self.formal_name(),n,featname))
+                    self.iface.debug("Proyecto %s, se agrega funcionalidad %s solicitada por %s" % (self.formal_name(),n,featname))
             req += new_reqs
             #req += new_reqs
             if obj.formal_name() not in req: req.append(obj.formal_name())
