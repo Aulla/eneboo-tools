@@ -23,7 +23,7 @@ class PackagerInterface(EnebooToolsInterface):
     module_description = "Herramientas para empaquetar y desempaquetar ficheros .eneboopkg"
     def __init__(self, setup_parser = True):
         EnebooToolsInterface.__init__(self, False)
-        self.dst_file = None
+        self.packager_mode = None
         if setup_parser: self.setup_parser()
         
     def setup_parser(self):
@@ -32,16 +32,26 @@ class PackagerInterface(EnebooToolsInterface):
         self.create_action = self.parser.declare_action(
             name = "create",
             args = ["modulefolder", "filename"],
-            options = [],
+            options = ["abanq-package"],
             min_argcount = 1,
             description = "Lee la carpeta $modulefolder (multiples carpetas separandolas con comas), examina los módulos y los empaqueta",
             call_function = self.do_create,
             )
+        
+        self.parser.declare_option(
+            name = "abanq-package",
+            short = "a", # opción corta relacionada (si se usa, no puede haber variable)
+            description = "Emula fichero .abanq",
+            level = "action", # ( action | parser )
+            # variable = None  # es omisible, porque None es por defecto.
+            call_function = self.set_packager_mode
+            )
 
         self.create_action.set_help_arg(
             modulefolder = "Carpeta que leer para empaquetar su contenido",
-            filename = "(opcional) Fichero destino"
-            )         
+            filename = "Fichero destino"
+            )
+        
 
         self.create_action = self.parser.declare_action(
             name = "unpack",
@@ -78,12 +88,15 @@ class PackagerInterface(EnebooToolsInterface):
             )                
 
     
+    def set_packager_mode(self):
+        self.packager_mode = True
+    
               
     # :::: ACTIONS ::::
     
     def do_create(self, modulefolder, filename=None):
         try:
-            return pkgjoiner.createpkg(self, modulefolder, filename)
+            return pkgjoiner.createpkg(self, modulefolder, filename, self.packager_mode)
         except Exception as e:
             self.exception(type(e).__name__,str(e))
     

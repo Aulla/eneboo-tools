@@ -56,7 +56,8 @@ def joinpkg(iface, packagefolder):
     
         
 
-def createpkg(iface, modulefolder, dst_file):
+def createpkg(iface, modulefolder, dst_file, emulate_mode):
+    global __package_header__
     module_folder_list = []
     if modulefolder.find(",") > -1:
         module_folder_list = modulefolder.split(",")
@@ -77,6 +78,9 @@ def createpkg(iface, modulefolder, dst_file):
     
     if dst_file:
         outputfile = dst_file
+    
+    if emulate_mode:
+        __package_header__ = "%s %s" % ("AbanQ Packager", __version__)
 
     f1 = open(outputfile, "wb")
     # VERSION
@@ -116,10 +120,14 @@ def createpkg(iface, modulefolder, dst_file):
             
             break
     
-    write_compressed(f1, """<!DOCTYPE modules_def>
+    modules_def = """<!DOCTYPE modules_def>
 <modules>
 %s
-</modules>""" % (''.join(modlines)))
+</modules>""" % (''.join(modlines))
+    
+
+
+    write_compressed(f1, modules_def)
     # FILES XML
     file_list = []
     filelines = []
@@ -153,10 +161,10 @@ def createpkg(iface, modulefolder, dst_file):
     <module>%s</module>
     <name>%s</name>
     <text>%s</text>
-    <skip>false</skip>
+    %s
     <shatext>%s</shatext>
   </file>
-""" % (modulename, file_basename, file_basename, sha1text))
+""" % (modulename, file_basename, file_basename,"<skip>false</skip>" if emulate_mode else "", sha1text))
 
     write_compressed(f1, """<!DOCTYPE files_def>
 <files>
