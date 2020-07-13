@@ -1,5 +1,5 @@
 # encoding: UTF-8
-__version__ = "1.2"
+__version__ = "1.2.1"
 __PROGRAM__NAME__ = "Eneboo Tools Packager"
 
 import enebootools
