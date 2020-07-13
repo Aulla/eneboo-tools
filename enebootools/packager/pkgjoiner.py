@@ -75,6 +75,7 @@ def createpkg(iface, modulefolder, dst_file, emulate_mode):
 
     iface.info2("Creando paquete de módulos de %s . . ." % ", ".join(module_folder_list))
     outputfile = module_folder_list[0] + ".eneboopkg"
+
     
     if dst_file:
         outputfile = dst_file
@@ -103,9 +104,8 @@ def createpkg(iface, modulefolder, dst_file, emulate_mode):
     file_folders = []
     modnames = []
     modlines = []
-    for module in sorted(modules):
+    for module in modules:
         file_folders.append(os.path.dirname(module))
-
         modnames.append(os.path.basename(module))
         # comentado para evitar posibles fallos:
         #modlines.append("<!-- Module %s -->\n" % module)
@@ -134,17 +134,26 @@ def createpkg(iface, modulefolder, dst_file, emulate_mode):
     shasum = ""
     ignored_ext = set([])
     load_ext = set(['.qs', '.mtd', '.ts', '.ar', '.kut', '.qry', '.ui', '.xml', '.xpm', '.py'])
+    list_modules = []
     for folder, module in zip(file_folders,modnames):
         fpath = ""
         for modulefolder in module_folder_list:
-            if not os.path.exists(os.path.join(modulefolder, module)):
+            if not os.path.exists(modulefolder):
                 continue
             fpath = os.path.join(modulefolder,folder)
+            if not os.path.exists(fpath):
+                continue
+
             break
 
         files = find_files(fpath)
         modulename = re.search("^\w+",module).group(0)
-        print(fpath, modulename)
+        if modulename in list_modules:
+            print("módulo %s (%s) Duplicado. Ignorado." % (modulename, fpath))
+            continue
+
+        print("->", fpath, modulename)
+        list_modules.append(modulename)
         for filename in files:
             bname, ext = os.path.splitext( filename )
             if ext not in load_ext: 
