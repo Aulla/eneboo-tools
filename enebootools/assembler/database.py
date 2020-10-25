@@ -393,9 +393,9 @@ def do_new(iface, subfoldername = None, description = None, patchurl = None):
     oi = ObjectIndex(iface)
     oi.analyze_objects()
     fpath = ftype = fcode = fname = fdesc = None
-    if description: fdesc = str(description, output_encoding)
+    if description: fdesc = description
     if subfoldername:
-        match = re.match("^([a-z]+)([A-Z0-9][0-9]{3})-([a-z][a-z0-9_]{3,20})$", str(subfoldername, output_encoding))
+        match = re.match("^([a-z]+)([A-Z0-9][0-9]{3})-([a-z][a-z0-9_]{3,20})$", subfoldername)
         if not match:
             print("El nombre de subcarpeta '%s' no es válido" % subfoldername)
             return False
