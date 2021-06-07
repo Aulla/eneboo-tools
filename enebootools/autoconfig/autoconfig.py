@@ -56,8 +56,7 @@ class ConfigReader:
     def loadSection(self, section):
         options = []
         if not self.configini.has_section(section) and self.saveConfig:
-            print("INFO: agregando la seccion %s -> %s (%s)" %
-                  (repr(section), section, type(section)))
+            print("INFO: agregando la seccion %s" % repr(section))
             self.configini.add_section(section)
 
         if self.configini.has_section(section):
