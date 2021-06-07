@@ -6,7 +6,7 @@ import traceback
 import enebootools.parseargs as pa
 
 
-__VERSION__ = "1.0.2"
+__VERSION__ = "1.0.3"
 
 output_encoding = sys.stdout.encoding
 if output_encoding is None:
