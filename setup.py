@@ -25,7 +25,14 @@ setuptools.setup(
     url="https://github.com/aulla/eneboo-tools",
     packages=setuptools.find_packages(),
     package_data={
-    	"enebootools": ["*"],
+        "enebootools": ["*"],
+        "enebootools.mergetool.etc": ["*"],
+        "enebootools.mergetool.etc.formats": ["*"],
+        "enebootools.mergetool.etc.patch-styles": ["*"],
+        "enebootools.databaseadmin.dblayer": ["*"],
+        "enebootools.crypto.certificates": ["*"],
+
+
     },
     install_requires=required,
     keywords="erp pineboo eneboo tools",
