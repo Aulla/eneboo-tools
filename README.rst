@@ -17,7 +17,7 @@ Como mínimo, se necesita:
         * libxslt
     
 Para tener el programa funcionando, se recomienda:
-    * python 2.6 o superior. (no es compatible con Python 3.X)
+    * python 3.6.9 o superior.
     * lxml (python-lxml) (Parser de XML)
     * psycopg (python-psycopg) (Driver de base de datos PostgreSQL)
     * pyqt4 (python-pyqt4) (Enlace de Qt4 para GUI)
