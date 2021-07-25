@@ -32,7 +32,6 @@ setuptools.setup(
         "enebootools.databaseadmin.dblayer": ["*"],
         "enebootools.crypto.certificates": ["*"],
 
-
     },
     install_requires=required,
     keywords="erp pineboo eneboo tools",
@@ -43,6 +42,8 @@ setuptools.setup(
             "eneboo-crypto=enebootools.entry_points:main_crypto",
             "eneboo-mergetool=enebootools.entry_points:main_mergetool",
             "eneboo-packager=enebootools.entry_points:main_packages",
+            "eneboo-extracttool=enebootools.entry_points:main_extract_tool",
+            
 
         ]
     },
