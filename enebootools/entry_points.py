@@ -41,7 +41,7 @@ def main_packages():
 def main_extract_tool():
     from enebootools.extracttool import ExtractToolInterface
 
-    iface = ExtractToolInternface()
+    iface = ExtractToolInterface()
 
     if iface.parse_args():  # parsea los argumentos de entrada de consola
         # Si el parseo no devuelve error,
