@@ -9,7 +9,7 @@ import time
 import hashlib
 import fnmatch
 
-from enebootools.mergetool import flpatchqs, flpatchlxml
+from enebootools.mergetool import flpatchqs, flpatchlxml, flpatchpy
 
 
 def filepath(): return os.path.abspath(os.path.dirname(__file__))
@@ -117,6 +117,9 @@ class FolderApplyPatch(object):
                     self.patch_script(action, folder)
                 elif actionname == "patchxml":
                     self.patch_xml(action, folder)
+                elif actionname == "patchpy":
+                    self.patch_py(action, folder)
+                    
                 # TODO: actionname == "patchphp"
                 else:
                     self.iface.warn(
@@ -285,6 +288,47 @@ class FolderApplyPatch(object):
         if not ret:
             self.iface.warn(
                 "Hubo algún problema aplicando el parche XML para %s" % filename)
+            try:
+                os.unlink(dst+".patched")
+            except IOError:
+                pass
+        else:
+            os.unlink(dst)
+            os.rename(dst+".patched", dst)
+    
+    def patch_py(self, patchscript, folder):
+        style = patchscript.get("style", "legacy")
+        path = patchscript.get("path")
+        filename = patchscript.get("name")
+
+        pathname = os.path.join(path, filename)
+        src = os.path.join(self.patch_dir, filename)
+        dst = os.path.join(folder, pathname)
+
+        if not os.path.exists(dst):
+            self.iface.warn(
+                "Ignorando parche PY para %s (el fichero no existe)" % filename)
+            return
+        self.iface.info("Aplicando parche PY %s . . ." % filename)
+        old_output = self.iface.output
+        old_verbosity = self.iface.verbosity
+        self.iface.verbosity -= 2
+        if self.iface.verbosity < 0:
+            self.iface.verbosity = 0
+        old_style, self.iface.patch_py_style_name = self.iface.patch_py_style_name, style
+        self.iface.set_output_file(dst+".patched")
+        if style in ['legacy']:
+            ret = flpatchpy.patch_py(self.iface, dst, src)
+        elif style in ['qsdir']:
+            ret = flpatchpy.patch_py_dir(self.iface, dst, src)
+        else:
+            raise ValueError("Estilo de parche PY desconocido: %s" % style)
+        self.iface.output = old_output
+        self.iface.verbosity = old_verbosity
+        self.iface.patch_qs_style_name = old_style
+        if not ret:
+            self.iface.warn(
+                "Hubo algún problema aplicando el parche PY para %s" % filename)
             try:
                 os.unlink(dst+".patched")
             except IOError:
