@@ -5,7 +5,7 @@
     <assert>
         <xpath>count(/TMD/name) = 1</xpath>
         <xpath>count(/TMD/alias) = 1</xpath>
-        <xpath>count(/TMD/field) > 1</xpath>
+        <xpath>count(/TMD/field) > 0</xpath>
     </assert>
     
     <entities>
