@@ -1324,6 +1324,7 @@ def check_qs_classes(iface, base):
     
 def patch_qs(iface, base, patch):
     iface.debug("Procesando Patch QS $base:%s + $patch:%s" % (base, patch))
+    from enebootools import QS_EXTEND_MODE
     nbase, flbase = file_reader(base)
     npatch, flpatch = file_reader(patch)
     if flbase is None or flpatch is None:
@@ -1470,13 +1471,19 @@ def patch_qs(iface, base, patch):
             extending = cdbase[oldclass]['extends']
         else:
             extending = extends
-            for classname in reversed(clbase['classes']):
-                # Buscamos del revés para encontrar el último.
-                cdict = cdbase[classname]
-                if cdict['from'] == extends:
-                    extending = cdict['name']
-                    iface.debug("La clase %s es la última que heredó de %s, pasamos a heredar de ésta." % (extending,extends))
-                    break
+            if QS_EXTEND_MODE == 'legacy':
+                for classname in reversed(clbase['classes']):
+                    # Buscamos del revés para encontrar el último.
+                    cdict = cdbase[classname]
+                    if cdict['from'] == extends:
+                        extending = cdict['name']
+                        iface.debug("La clase %s es la última que heredó de %s, pasamos a heredar de ésta." % (extending,extends))
+                        break
+            elif QS_EXTEND_MODE == "yeboyebo":
+                pass
+            else:
+                iface.error("feature.qs_extend_mode desconocido %s.Revisa el estilo especificado en el feature.ini." % QS_EXTEND_MODE)
+                return False
         
         if mode == "insert":
             # Habrá que insertar el bloque entre dos bloques: parent_class y child_class.

@@ -168,6 +168,8 @@ class FeatureObject(BaseObject):
         self.dstfolder = None
         self.required_modules = read_file_list(self.fullpath, "conf/required_modules", errlog = self.iface.warn)
         self.required_features = read_file_list(self.fullpath, "conf/required_features", errlog = self.iface.warn)
+        self.qs_extend_mode = cfg.feature.qs_extend_mode
+
 
         self.patch_series = read_file_list(self.fullpath, "conf/patch_series", errlog = self.iface.warn)
         
@@ -202,6 +204,8 @@ class FeatureObject(BaseObject):
     # * base: compila las dependencias del proyecto (todo lo que necesitamos 
     #         para poder aplicar los parches luego)
     def get_base_actions(self):
+        import enebootools
+        enebootools.QS_EXTEND_MODE = self.qs_extend_mode
         dst_folder = os.path.join(self.fullpath, "build/base")
         binstr = etree.Element("BuildInstructions")
         binstr.set("feature",self.formal_name())

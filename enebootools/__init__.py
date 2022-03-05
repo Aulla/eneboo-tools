@@ -7,6 +7,7 @@ import enebootools.parseargs as pa
 
 
 __VERSION__ = "1.2.1"
+QS_EXTEND_MODE = 'legacy'
 
 output_encoding = sys.stdout.encoding
 if output_encoding is None:

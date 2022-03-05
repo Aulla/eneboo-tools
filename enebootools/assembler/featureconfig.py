@@ -10,6 +10,7 @@ class FeatureConfig(AutoConfigTemplate):
     code=string:ext9999
     description=string:long description
     type=string:ext
+    qs_extend_mode=string:legacy
     """
     
 
