@@ -112,8 +112,9 @@ class Parameter:
                 self.setDefault()
                 if not configreader.saveConfig:
                     configreader.errors = True
-                    print("WARN: Asumiendo valor %s para parametro %s (seccion %s)" % (
-                        repr(self.getValue()), repr(self.name), repr(self.parent._sectionname)))
+                    if self.name != "qs_extend_mode":
+                        print("WARN: Asumiendo valor %s para parametro %s (seccion %s)" % (
+                            repr(self.getValue()), repr(self.name), repr(self.parent._sectionname)))
                 else:
                     print("INFO: Escribiendo valor %s para parametro %s (seccion %s)" % (
                         repr(self.getValue()), repr(self.name), repr(self.parent._sectionname)))
