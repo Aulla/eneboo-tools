@@ -1471,7 +1471,43 @@ def patch_qs(iface, base, patch):
             extending = cdbase[oldclass]['extends']
         else:
             extending = extends
-            if QS_EXTEND_MODE == 'legacy':
+            
+            
+            if QS_EXTEND_MODE == "yeboyebo":
+                #print("*", patch)
+                base_functions = qsclass_functions(iface, flbase)
+                patch_functions = qsclass_functions(iface, flpatch)
+                found = False
+                for classname in clbase['classes']:
+                    #print("**", classname)
+                    if found:
+                        break
+                    # Buscamos del revés para encontrar el último.
+                    cdict = cdbase[classname]
+                    #print("***", cdict['from'], extends)
+                    if not cdict['from']:
+                        cdict['from'] = 'oficial'
+                    if cdict['from'] == extends:
+                        #print("****", patch_functions)
+                        for patch_class, patch_function in patch_functions:
+                            if found:
+                                break
+                            for base_class, base_function in base_functions:
+                                if found:
+                                    break
+                                if base_class != classname or base_class in ['interna']: 
+                                    continue
+                                if patch_function == 'init' or str(patch_function).startswith(('afterCommit','beforeCommit','validateCursor')):
+                                    continue
+                                #print("Comparando", patch_function, base_function)
+                                if patch_function == base_function:
+                                    extending = base_class
+                                    iface.debug("La función %s necesita ser sobrecargada, forzando modo legacy" % patch_function)
+                                    found = True
+                                    break
+
+
+            else:
                 for classname in reversed(clbase['classes']):
                     # Buscamos del revés para encontrar el último.
                     cdict = cdbase[classname]
@@ -1479,11 +1515,8 @@ def patch_qs(iface, base, patch):
                         extending = cdict['name']
                         iface.debug("La clase %s es la última que heredó de %s, pasamos a heredar de ésta." % (extending,extends))
                         break
-            elif QS_EXTEND_MODE == "yeboyebo":
-                pass
-            else:
-                iface.error("feature.qs_extend_mode desconocido %s.Revisa el estilo especificado en el feature.ini." % QS_EXTEND_MODE)
-                return False
+
+
         
         if mode == "insert":
             # Habrá que insertar el bloque entre dos bloques: parent_class y child_class.
@@ -1755,7 +1788,45 @@ def check_class(iface, flbase, clbase, cdbase, classname):
                 
             
         
-        
+def qsclass_functions(iface, file_lines):
+    function_list = []
+    for n,line in enumerate(file_lines):
+        line2 = latin1_to_ascii(line)
+        m = re.search(r"/\*\*?\s*@\s*([\w\.,;-]+)\s+([^ */]+)?\s*\*/", line2)
+        if m:
+            m2 = re.search("^\s*/\*\* @(\w+)( \w+)?\s*\*/\s*$", line)
+            if not m2:
+                iface.warn("Formato incorrecto de la linea %s" % repr(line))
+            dtype = m.group(1)
+            cname = m.group(2)
+            for n2,sline in enumerate(file_lines[n+1:]):
+                sline2 = latin1_to_ascii(sline)
+                sm = re.search(r"/\*\*?\s*@\s*([\w\.,;-]+)\s+([^ */]+)?\s*\*/", sline2)
+                if sm: break
+            n2+=n+1
+            class_lines = file_lines[n:n2]
+            heu_dtype = None
+            heu_cname = None
+            heu_extends = None
+            heu_from = None
+            for l in class_lines[:32]:
+                m = re.search("class\s+(?P<cname>\w+)(\s+extends\s+(?P<cbase>\w+))?(\s+/\*\*\s+%from:\s+(?P<cfrom>\w+)\s+\*/)?",l)
+                if m: 
+                    heu_cname = m.group("cname")
+                    heu_extends = m.group("cbase")
+                    heu_from = m.group("cfrom")
+                    heu_dtype = "class_declaration"
+            if heu_dtype is None:
+                heu_cnames = []
+                other_functions = []
+                for l in class_lines:
+                    m = re.search("^function\s+(?P<cname>[a-zA-Z0-9]+)_(?P<fname>\w+)",l)
+                    if m:
+                        fun_name = m.group('fname')
+                        class_name = m.group('cname')
+                        function_list.append([cname, fun_name])
+                       
+    return function_list     
 
 
 

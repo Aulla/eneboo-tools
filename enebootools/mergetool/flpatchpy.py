@@ -1350,7 +1350,6 @@ def patch_py(iface, base, patch):
     #  - En caso de no haber nueva clase hija, entonces "iface" cambia de tipo.
     #       Además, probablemente haya que bajar la definición de iface.
     new_iface_class = None
-    print("*", clpatch['classes'], clpatch['delclasses'])
 
     for newclass in clpatch['classes'] + clpatch['delclasses']:
         auth_overwrite_class = False
