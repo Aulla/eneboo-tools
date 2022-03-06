@@ -1492,13 +1492,16 @@ def patch_qs(iface, base, patch):
                         for patch_class, patch_function in patch_functions:
                             if found:
                                 break
+                            
+                            if patch_function in ('init','validateCursor') or str(patch_function).startswith(('afterCommit','beforeCommit')):
+                                continue
+
                             for base_class, base_function in base_functions:
                                 if found:
                                     break
                                 if base_class != classname or base_class in ['interna']: 
                                     continue
-                                if patch_function == 'init' or str(patch_function).startswith(('afterCommit','beforeCommit','validateCursor')):
-                                    continue
+                                
                                 #print("Comparando", patch_function, base_function)
                                 if patch_function == base_function:
                                     extending = base_class
