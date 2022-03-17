@@ -19,7 +19,7 @@ def main_crypto():
         iface.execute_actions()  # ejecuta las acciones detectadas.
 
 
-def main_merge_tool():
+def main_mergetool():
     from enebootools.mergetool import MergeToolInterface
 
     iface = MergeToolInterface()
