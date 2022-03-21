@@ -66,9 +66,9 @@ class TestMergeTool(unittest.TestCase):
     def tearDownClass(cls) -> None:
         """Ensure test clear all data."""
         
-        #file_names_list = ['base_result.py','base_def_result.py','base_models_result.py']
-        #for file_name in file_names_list:
-        #    file_path = fixture_path(file_name)
-        #    if os.path.exists(file_path):
-        #        print("Borrando", file_name, os.stat(file_path).st_size)
-        #        os.remove(file_path)
+        file_names_list = ['base_result.py','base_def_result.py','base_models_result.py']
+        for file_name in file_names_list:
+            file_path = fixture_path(file_name)
+            if os.path.exists(file_path):
+                print("Borrando", file_name, os.stat(file_path).st_size)
+                os.remove(file_path)
