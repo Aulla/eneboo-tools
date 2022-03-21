@@ -6,7 +6,7 @@ import traceback
 import enebootools.parseargs as pa
 
 
-__VERSION__ = "1.4.3"
+__VERSION__ = "1.4.4"
 QS_EXTEND_MODE = 'legacy'
 
 output_encoding = sys.stdout.encoding
