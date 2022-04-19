@@ -1,30 +1,28 @@
+"""enebootools package."""
 # encoding: UTF-8
 import os
 import os.path
 import sys
 import traceback
+from pprint import pformat
 import enebootools.parseargs as pa
+
 
 
 __VERSION__ = "1.4.4"
 QS_EXTEND_MODE = 'legacy'
 
-output_encoding = sys.stdout.encoding
-if output_encoding is None:
-    import codecs
-    sys.stdout = codecs.getwriter('utf8')(sys.stdout)
-    output_encoding = "UTF-8"
-
-
-def ustr(x):
-    if type(x) is str:
-        return x
-    if type(x) is str:
-        return x.encode("UTF-8", "replace")
-    return str(x)
+def ustr(value):
+    """Ustr."""
+    if isinstance(value, str):
+        return value
+    #if isinstance(x, str):
+    #    return x.encode("UTF-8", "replace")
+    return str(value)
 
 
 def myprint(*args):
+    """My print."""
     txt = " ".join(args)+"\n"
     try:
         sys.stdout.write(str(txt, "UTF-8", "replace"))
@@ -33,18 +31,22 @@ def myprint(*args):
 
 
 class EnebooToolsInterface(object):
+    """EnebooToolsInterface class."""
     module_description = "Descripción genérica"
 
     def __init__(self, setup_parser=True):
+        """Initialice."""
         self.action_chain = None
         self.parser = None
         self.verbosity = 0
         self.output_file_name = "STDOUT"
+        self.filename_list = []
         self.output = sys.stdout
         if setup_parser:
             self.setup_parser()
 
     def setup_parser(self):
+        """Setup parser."""
         self.parser = pa.ArgParser(
             description=self.module_description,
         )
@@ -75,6 +77,7 @@ class EnebooToolsInterface(object):
         )
 
     def parse_args(self, argv=None):
+        """Parse args."""
         self.action_chain = self.parser.parse_args(argv)
         self.filename_list = self.parser.parse.files
         if self.action_chain is None:
@@ -83,6 +86,7 @@ class EnebooToolsInterface(object):
             return True
 
     def execute_actions(self):
+        """Execute action."""
         # Action chain es la cadena de llamadas. Es una lista que contiene:
         # [
         #  .. (function1_ptr ,  *args, **kwargs),
@@ -103,19 +107,23 @@ class EnebooToolsInterface(object):
         self.action_chain = []
 
     def set_output_file(self, filename):
+        """Set Oputput file."""
         self.output_file_name = filename
         self.output = open(filename, "wb")
 
     def set_verbose(self):
+        """Set Verbose."""
         self.verbosity += 1
 
     def set_quiet(self):
+        """Set quiet."""
         self.verbosity -= 1
 
     def debug2r(self, variable=None, **kwargs):
+        """Debug2r."""
         if self.verbosity < 4:
             return
-        from pprint import pformat
+
         if variable is not None:
             kwargs['var'] = variable
         print("DEBUG+", end=' ')
@@ -126,63 +134,72 @@ class EnebooToolsInterface(object):
                 lines = pformat(var).splitlines()
             except UnicodeEncodeError:
                 lines = ["UNICODE ENCODE ERROR"]
-            for n, line in enumerate(lines):
-                if n > 0:
+            for num, line in enumerate(lines):
+                if num > 0:
                     print(" "*(len(prefix)+0), end=' ')
                 print(line, end=' ')
-                if n < len(lines)-1:
+                if num < len(lines)-1:
                     print()
         print()
 
     def debug2(self, text):
+        """Debug2."""
         if self.verbosity < 4:
             return
         text = ustr(text)
         myprint("DEBUG+:", text)
 
     def debug(self, text):
+        """Debug."""
         if self.verbosity < 3:
             return
         text = ustr(text)
         myprint("DEBUG:", text)
 
     def info2(self, text):
+        """Info2-"""
         if self.verbosity < 2:
             return
         text = ustr(text)
         myprint("INFO:", text)
 
     def info(self, text):
+        """Info."""
         if self.verbosity < 1:
             return
         text = ustr(text)
         myprint(":", text)
 
     def msg(self, text):
+        """Msg."""
         if self.verbosity < 0:
             return
         text = ustr(text)
         myprint(text)
 
     def warn(self, text):
+        """Warn."""
         if self.verbosity < -1:
             return
         text = ustr(text)
         myprint("WARN:", text)
 
     def error(self, text):
+        """Error."""
         if self.verbosity < -2:
             return
         text = ustr(text)
         myprint("ERROR:", text)
 
     def critical(self, text):
+        """Critical."""
         if self.verbosity < -3:
             return
         text = ustr(text)
         myprint("CRITICAL:", text)
 
     def exception(self, errtype, text=""):
+        """Exception."""
         if self.verbosity < -3:
             return
         text = ustr(text)
