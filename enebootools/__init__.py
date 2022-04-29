@@ -9,7 +9,7 @@ import enebootools.parseargs as pa
 
 
 
-__VERSION__ = "1.5"
+__VERSION__ = "1.5.1"
 QS_EXTEND_MODE = 'legacy'
 
 def ustr(value):
