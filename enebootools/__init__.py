@@ -8,22 +8,22 @@ from pprint import pformat
 import enebootools.parseargs as pa
 
 
+__VERSION__ = "1.5.2"
+QS_EXTEND_MODE = "legacy"
 
-__VERSION__ = "1.5.1"
-QS_EXTEND_MODE = 'legacy'
 
 def ustr(value):
     """Ustr."""
     if isinstance(value, str):
         return value
-    #if isinstance(x, str):
+    # if isinstance(x, str):
     #    return x.encode("UTF-8", "replace")
     return str(value)
 
 
 def myprint(*args):
     """My print."""
-    txt = " ".join(args)+"\n"
+    txt = " ".join(args) + "\n"
     try:
         sys.stdout.write(str(txt, "UTF-8", "replace"))
     except Exception:
@@ -32,6 +32,7 @@ def myprint(*args):
 
 class EnebooToolsInterface(object):
     """EnebooToolsInterface class."""
+
     module_description = "Descripción genérica"
 
     def __init__(self, setup_parser=True):
@@ -57,7 +58,7 @@ class EnebooToolsInterface(object):
             level="action",  # ( action | parser )
             variable="PATH",  # determina el nombre de la variable en la ayuda.
             # si es None, no hay variable. Esto fuerza también la sintaxis.
-            call_function=self.set_output_file
+            call_function=self.set_output_file,
         )
         self.parser.declare_option(
             name="verbose",
@@ -66,14 +67,14 @@ class EnebooToolsInterface(object):
             description="Aumenta la cantidad de mensajes",
             level="parser",  # ( action | parser )
             # variable = None  # es omisible, porque None es por defecto.
-            call_function=self.set_verbose
+            call_function=self.set_verbose,
         )
         self.parser.declare_option(
             name="quiet",
             short="q",
             description="Disminuye la cantidad de mensajes",
             level="parser",
-            call_function=self.set_quiet
+            call_function=self.set_quiet,
         )
 
     def parse_args(self, argv=None):
@@ -94,8 +95,7 @@ class EnebooToolsInterface(object):
         # ]
         # Se lanzan en orden.
         if self.action_chain is None:
-            print(
-                "Hubo un error al leer los argumentos y no se puede realizar la acción.")
+            print("Hubo un error al leer los argumentos y no se puede realizar la acción.")
             return
         for function, args, kwargs in self.action_chain:
             if self.verbosity > 4:
@@ -125,20 +125,20 @@ class EnebooToolsInterface(object):
             return
 
         if variable is not None:
-            kwargs['var'] = variable
-        print("DEBUG+", end=' ')
+            kwargs["var"] = variable
+        print("DEBUG+", end=" ")
         for arg, var in sorted(kwargs.items()):
             prefix = ": %s =" % arg
-            print(prefix, end=' ')
+            print(prefix, end=" ")
             try:
                 lines = pformat(var).splitlines()
             except UnicodeEncodeError:
                 lines = ["UNICODE ENCODE ERROR"]
             for num, line in enumerate(lines):
                 if num > 0:
-                    print(" "*(len(prefix)+0), end=' ')
-                print(line, end=' ')
-                if num < len(lines)-1:
+                    print(" " * (len(prefix) + 0), end=" ")
+                print(line, end=" ")
+                if num < len(lines) - 1:
                     print()
         print()
 
