@@ -109,7 +109,7 @@ class EnebooToolsInterface(object):
     def set_output_file(self, filename):
         """Set Oputput file."""
         self.output_file_name = filename
-        self.output = open(filename, "wb")
+        self.output = open(filename, "wb", buffering=0)
 
     def set_verbose(self):
         """Set Verbose."""
