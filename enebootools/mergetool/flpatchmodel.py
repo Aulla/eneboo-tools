@@ -327,7 +327,7 @@ def extract_class_decl_info(iface, text_lines):
 
 def file_reader(filename):
     try:
-        f1 = open(filename, "r")
+        f1 = open(filename, "r", encoding="UTF-8")
     except IOError:
         raise ValueError("File Not Found: %s" % repr(filename))
         return
