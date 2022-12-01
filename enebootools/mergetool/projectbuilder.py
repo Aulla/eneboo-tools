@@ -76,9 +76,7 @@ class BuildInstructions(object):
 
     def updatePatch(self, src, dst):
         self.iface.warn("Actualizando parche (...)%s - (...)%s . . ." % (src[-48:], dst[-48:]))
-        # 1 buscar ficheros modificados.
-        # 2 calcular cambios y guardar
-        # 3 actualizar xml
+        flpatchdir.update_patch_folder_inplace(self.iface, src, dst, self.dstpath, inplace=True)
 
 
 def build_xml_file(iface, xmlfile, rebuild=True):

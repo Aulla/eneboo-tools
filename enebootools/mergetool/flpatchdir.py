@@ -12,8 +12,12 @@ import fnmatch
 from enebootools.mergetool import flpatchqs, flpatchlxml, flpatchpy
 
 
-def filepath(): return os.path.abspath(os.path.dirname(__file__))
-def filedir(x): return os.path.abspath(os.path.join(filepath(), x))
+def filepath():
+    return os.path.abspath(os.path.dirname(__file__))
+
+
+def filedir(x):
+    return os.path.abspath(os.path.join(filepath(), x))
 
 
 def hash_file(dirname, filename):
@@ -35,16 +39,16 @@ def hash_none():
 def _xf(x, cstring=False, **kwargs):  # xml-format
     if type(x) is list:
         return "\n---\n\n".join([_xf(x1) for x1 in x])
-    if 'encoding' not in kwargs:
-        kwargs['encoding'] = "UTF8"
-    if 'pretty_print' not in kwargs:
-        kwargs['pretty_print'] = True
+    if "encoding" not in kwargs:
+        kwargs["encoding"] = "UTF8"
+    if "pretty_print" not in kwargs:
+        kwargs["pretty_print"] = True
 
     value = etree.tostring(x, **kwargs)
     if cstring:
         return value
     else:
-        return str(value, kwargs['encoding'])
+        return str(value, kwargs["encoding"])
 
 
 class FolderApplyPatch(object):
@@ -53,8 +57,7 @@ class FolderApplyPatch(object):
         if patchdir[-1] == "/":
             patchdir = patchdir[:-1]
         try:
-            patchname = open(os.path.join(patchdir, "conf",
-                             "patch_series")).read().strip()
+            patchname = open(os.path.join(patchdir, "conf", "patch_series")).read().strip()
             newpatchdir = os.path.join(patchdir, "patches", patchname)
             iface.warn("Cambiando carpeta de parche a %s" % newpatchdir)
             patchdir = newpatchdir
@@ -72,7 +75,8 @@ class FolderApplyPatch(object):
                 break
         if self.patch_dir is None:
             self.iface.error(
-                "No pude encontrar %s en ninguna subcarpeta del parche." % expected_file)
+                "No pude encontrar %s en ninguna subcarpeta del parche." % expected_file
+            )
             self.patch_dir = patchdir
 
         patch_file = os.path.join(self.patch_dir, expected_file)
@@ -119,14 +123,14 @@ class FolderApplyPatch(object):
                     self.patch_xml(action, folder)
                 elif actionname == "patchpy":
                     self.patch_py(action, folder)
-                    
+
                 # TODO: actionname == "patchphp"
                 else:
-                    self.iface.warn(
-                        "** Se ha ignorado acción desconocida %s **" % repr(actionname))
+                    self.iface.warn("** Se ha ignorado acción desconocida %s **" % repr(actionname))
             except Exception as e:
                 self.iface.exception(
-                    "ComputePatch", "No se pudo aplicar el parche para %s" % action.get("name"))
+                    "ComputePatch", "No se pudo aplicar el parche para %s" % action.get("name")
+                )
 
             tend = time.time()
             tdelta = tend - tbegin
@@ -167,7 +171,8 @@ class FolderApplyPatch(object):
         if not os.path.exists(os.path.join(folder, module_path)):
             if os.path.relpath(path, module_path).count("/") > 0:
                 self.iface.warn(
-                    "Ignorando la creación de fichero %s (el módulo no existe)" % filename)
+                    "Ignorando la creación de fichero %s (el módulo no existe)" % filename
+                )
                 return
 
         pathname = os.path.join(path, filename)
@@ -188,8 +193,7 @@ class FolderApplyPatch(object):
         while module_path.count("/") > 1:
             module_path = os.path.dirname(module_path)
         if not os.path.exists(os.path.join(folder, module_path)):
-            self.iface.info(
-                "Ignorando el borrado de fichero %s (el módulo no existe)" % filename)
+            self.iface.info("Ignorando el borrado de fichero %s (el módulo no existe)" % filename)
             return
 
         pathname = os.path.join(path, filename)
@@ -202,8 +206,7 @@ class FolderApplyPatch(object):
                 self.iface.info("Borrando %s . . ." % filename)
                 os.unlink(dst)
             else:
-                self.iface.warn(
-                    "Se iba a borrar %s, pero no existe." % filename)
+                self.iface.warn("Se iba a borrar %s, pero no existe." % filename)
 
     def replace_file(self, replacefile, folder):
         path = replacefile.get("path")
@@ -213,7 +216,8 @@ class FolderApplyPatch(object):
         dst = os.path.join(folder, pathname)
         if not os.path.exists(dst):
             self.iface.warn(
-                "Ignorando reemplazo de fichero para %s (el fichero no existe)" % filename)
+                "Ignorando reemplazo de fichero para %s (el fichero no existe)" % filename
+            )
             return
 
         self.iface.debug("Reemplazando fichero %s . . ." % filename)
@@ -231,8 +235,7 @@ class FolderApplyPatch(object):
         dst = os.path.join(folder, pathname)
 
         if not os.path.exists(dst):
-            self.iface.warn(
-                "Ignorando parche QS para %s (el fichero no existe)" % filename)
+            self.iface.warn("Ignorando parche QS para %s (el fichero no existe)" % filename)
             return
         self.iface.info("Aplicando parche QS %s . . ." % filename)
         old_output = self.iface.output
@@ -241,10 +244,10 @@ class FolderApplyPatch(object):
         if self.iface.verbosity < 0:
             self.iface.verbosity = 0
         old_style, self.iface.patch_qs_style_name = self.iface.patch_qs_style_name, style
-        self.iface.set_output_file(dst+".patched")
-        if style in ['legacy']:
+        self.iface.set_output_file(dst + ".patched")
+        if style in ["legacy"]:
             ret = flpatchqs.patch_qs(self.iface, dst, src)
-        elif style in ['qsdir']:
+        elif style in ["qsdir"]:
             ret = flpatchqs.patch_qs_dir(self.iface, dst, src)
         else:
             raise ValueError("Estilo de parche QS desconocido: %s" % style)
@@ -252,15 +255,14 @@ class FolderApplyPatch(object):
         self.iface.verbosity = old_verbosity
         self.iface.patch_qs_style_name = old_style
         if not ret:
-            self.iface.warn(
-                "Hubo algún problema aplicando el parche QS para %s" % filename)
+            self.iface.warn("Hubo algún problema aplicando el parche QS para %s" % filename)
             try:
-                os.unlink(dst+".patched")
+                os.unlink(dst + ".patched")
             except IOError:
                 pass
         else:
             os.unlink(dst)
-            os.rename(dst+".patched", dst)
+            os.rename(dst + ".patched", dst)
 
     def patch_xml(self, patchxml, folder):
         style = patchxml.get("style", "legacy1")
@@ -272,8 +274,7 @@ class FolderApplyPatch(object):
         dst = os.path.join(folder, pathname)
 
         if not os.path.exists(dst):
-            self.iface.warn(
-                "Ignorando parche XML para %s (el fichero no existe)" % filename)
+            self.iface.warn("Ignorando parche XML para %s (el fichero no existe)" % filename)
             return
         self.iface.info("Aplicando parche XML %s . . ." % filename)
         old_output = self.iface.output
@@ -281,21 +282,20 @@ class FolderApplyPatch(object):
         self.iface.verbosity -= 2
         if self.iface.verbosity < 0:
             self.iface.verbosity = min([0, self.iface.verbosity])
-        self.iface.set_output_file(dst+".patched")
+        self.iface.set_output_file(dst + ".patched")
         ret = flpatchlxml.patch_lxml(self.iface, src, dst)
         self.iface.output = old_output
         self.iface.verbosity = old_verbosity
         if not ret:
-            self.iface.warn(
-                "Hubo algún problema aplicando el parche XML para %s" % filename)
+            self.iface.warn("Hubo algún problema aplicando el parche XML para %s" % filename)
             try:
-                os.unlink(dst+".patched")
+                os.unlink(dst + ".patched")
             except IOError:
                 pass
         else:
             os.unlink(dst)
-            os.rename(dst+".patched", dst)
-    
+            os.rename(dst + ".patched", dst)
+
     def patch_py(self, patchscript, folder):
         style = patchscript.get("style", "legacy")
         path = patchscript.get("path")
@@ -306,8 +306,7 @@ class FolderApplyPatch(object):
         dst = os.path.join(folder, pathname)
 
         if not os.path.exists(dst):
-            self.iface.warn(
-                "Ignorando parche PY para %s (el fichero no existe)" % filename)
+            self.iface.warn("Ignorando parche PY para %s (el fichero no existe)" % filename)
             return
         self.iface.info("Aplicando parche PY %s . . ." % filename)
         old_output = self.iface.output
@@ -316,10 +315,10 @@ class FolderApplyPatch(object):
         if self.iface.verbosity < 0:
             self.iface.verbosity = 0
         old_style, self.iface.patch_py_style_name = self.iface.patch_py_style_name, style
-        self.iface.set_output_file(dst+".patched")
-        if style in ['legacy']:
+        self.iface.set_output_file(dst + ".patched")
+        if style in ["legacy"]:
             ret = flpatchpy.patch_py(self.iface, dst, src)
-        elif style in ['qsdir']:
+        elif style in ["qsdir"]:
             ret = flpatchpy.patch_py_dir(self.iface, dst, src)
         else:
             raise ValueError("Estilo de parche PY desconocido: %s" % style)
@@ -327,20 +326,19 @@ class FolderApplyPatch(object):
         self.iface.verbosity = old_verbosity
         self.iface.patch_qs_style_name = old_style
         if not ret:
-            self.iface.warn(
-                "Hubo algún problema aplicando el parche PY para %s" % filename)
+            self.iface.warn("Hubo algún problema aplicando el parche PY para %s" % filename)
             try:
-                os.unlink(dst+".patched")
+                os.unlink(dst + ".patched")
             except IOError:
                 pass
         else:
             os.unlink(dst)
-            os.rename(dst+".patched", dst)
+            os.rename(dst + ".patched", dst)
 
 
 class FolderCreatePatch(object):
     nsmap = {
-        'flpatch': "http://www.abanqg2.com/es/directori/abanq-ensambla/?flpatch",
+        "flpatch": "http://www.abanqg2.com/es/directori/abanq-ensambla/?flpatch",
     }
 
     def __init__(self, iface, basedir, finaldir, patchdir):
@@ -361,7 +359,8 @@ class FolderCreatePatch(object):
         self.encoding = "iso-8859-15"
         # <flpatch:modifications name="patchname" >
         self.root = etree.Element(
-            "{%s}modifications" % self.nsmap['flpatch'], name=self.patch_name, nsmap=self.nsmap)
+            "{%s}modifications" % self.nsmap["flpatch"], name=self.patch_name, nsmap=self.nsmap
+        )
         self.tree = self.root.getroottree()
         ignored_files = [
             "*~",
@@ -418,12 +417,9 @@ class FolderCreatePatch(object):
             iface.info("Calculando diferencias . . . ")
 
             file_actions = []
-            file_actions += [(os.path.dirname(f), f, "add")
-                             for f in self.added_files]
-            file_actions += [(os.path.dirname(f), f, "common")
-                             for f in self.common_files]
-            file_actions += [(os.path.dirname(f), f, "delete")
-                             for f in self.deleted_files]
+            file_actions += [(os.path.dirname(f), f, "add") for f in self.added_files]
+            file_actions += [(os.path.dirname(f), f, "common") for f in self.common_files]
+            file_actions += [(os.path.dirname(f), f, "delete") for f in self.deleted_files]
             # Intentar guardarlos de forma ordenada, para minimizar las diferencias entre parches.
             for path, filename, action in sorted(file_actions):
                 if action == "add":
@@ -439,8 +435,9 @@ class FolderCreatePatch(object):
         path, name = os.path.split(filename)
         if len(path) and not path.endswith("/"):
             path += "/"
-        newnode = etree.SubElement(self.root, "{%s}%s" % (
-            self.nsmap['flpatch'], actionname), path=path, name=name)
+        newnode = etree.SubElement(
+            self.root, "{%s}%s" % (self.nsmap["flpatch"], actionname), path=path, name=name
+        )
         return newnode
 
     def add_file(self, filename):
@@ -512,16 +509,20 @@ class FolderCreatePatch(object):
                     # TODO: actionname == "patchphp"
                     else:
                         self.iface.warn(
-                            "** Se ha ignorado acción desconocida %s **" % repr(actionname))
+                            "** Se ha ignorado acción desconocida %s **" % repr(actionname)
+                        )
                 else:
                     if actionname == "patchxml":
                         action.set("style", self.iface.patch_xml_style_name)
                     else:
                         self.iface.warn(
-                            "** Se ha ignorado el setStype de acción desconocida %s **" % repr(actionname))
+                            "** Se ha ignorado el setStype de acción desconocida %s **"
+                            % repr(actionname)
+                        )
             except Exception as e:
                 self.iface.exception(
-                    "ComputePatch", "No se pudo computar el parche para %s" % action.get("name"))
+                    "ComputePatch", "No se pudo computar el parche para %s" % action.get("name")
+                )
 
             if ret == -1:
                 self.root.remove(action)
@@ -531,8 +532,7 @@ class FolderCreatePatch(object):
                 self.iface.debug("La operación tomó %.2f segundos" % tdelta)
 
         f1 = open(self.patch_filename, "wb")
-        f1.write(_xf(self.root, xml_declaration=False,
-                 cstring=True, encoding=self.encoding))
+        f1.write(_xf(self.root, xml_declaration=False, cstring=True, encoding=self.encoding))
         f1.close()
 
     def compute_delete_file(self, addfile):
@@ -581,21 +581,21 @@ class FolderCreatePatch(object):
         if self.iface.verbosity < 0:
             self.iface.verbosity = min([0, self.iface.verbosity])
         self.iface.set_output_file(dst)
-        if self.iface.patch_qs_style_name in ['legacy']:
+        if self.iface.patch_qs_style_name in ["legacy"]:
             ret = flpatchqs.diff_qs(self.iface, base, final)
-        elif self.iface.patch_qs_style_name in ['qsdir']:
+        elif self.iface.patch_qs_style_name in ["qsdir"]:
             ret = flpatchqs.diff_qs_dir(self.iface, base, final)
         else:
-            raise ValueError("patch_qs_style_name no reconocido: %s" %
-                             self.iface.patch_qs_style_name)
+            raise ValueError(
+                "patch_qs_style_name no reconocido: %s" % self.iface.patch_qs_style_name
+            )
         self.iface.output = old_output
         self.iface.verbosity = old_verbosity
         if ret == -1:
             os.unlink(dst)
             return -1
         if not ret:
-            self.iface.warn(
-                "Pudo haber algún problema generando el parche QS para %s" % filename)
+            self.iface.warn("Pudo haber algún problema generando el parche QS para %s" % filename)
 
     def compute_patch_xml(self, patchxml):
         patchxml.set("style", self.iface.patch_xml_style_name)
@@ -619,13 +619,11 @@ class FolderCreatePatch(object):
             os.unlink(dst)
             return -1
         if not ret:
-            self.iface.warn(
-                "Pudo haber algún problema generando el parche XML para %s" % filename)
+            self.iface.warn("Pudo haber algún problema generando el parche XML para %s" % filename)
 
 
 def diff_folder(iface, basedir, finaldir, patchdir, inplace=False):
-    iface.debug("Folder Diff $basedir:%s $finaldir:%s $patchdir:%s" %
-                (basedir, finaldir, patchdir))
+    iface.debug("Folder Diff $basedir:%s $finaldir:%s $patchdir:%s" % (basedir, finaldir, patchdir))
     # patchdir no debe existir
     parent_patchdir = os.path.abspath(os.path.join(patchdir, ".."))
     if not os.path.exists(parent_patchdir):
@@ -639,8 +637,7 @@ def diff_folder(iface, basedir, finaldir, patchdir, inplace=False):
         return
     if not inplace:
         if os.path.lexists(patchdir):
-            iface.error(
-                "La ruta a $finaldir %s ya existía. No se continua. " % patchdir)
+            iface.error("La ruta a $finaldir %s ya existía. No se continua. " % patchdir)
             return
     if not os.path.lexists(patchdir):
         os.mkdir(patchdir)
@@ -650,8 +647,9 @@ def diff_folder(iface, basedir, finaldir, patchdir, inplace=False):
 
 
 def patch_folder(iface, basedir, finaldir, patchdir):
-    iface.debug("Folder Patch $basedir:%s $finaldir:%s $patchdir:%s" %
-                (basedir, finaldir, patchdir))
+    iface.debug(
+        "Folder Patch $basedir:%s $finaldir:%s $patchdir:%s" % (basedir, finaldir, patchdir)
+    )
     if not os.path.exists(basedir):
         iface.error("La ruta %s no existe" % basedir)
         return
@@ -673,8 +671,7 @@ def patch_folder(iface, basedir, finaldir, patchdir):
             iface.error("La ruta %s no existe" % parent_finaldir)
             return
         if os.path.lexists(finaldir):
-            iface.error(
-                "La ruta a $finaldir %s ya existía. No se continua. " % finaldir)
+            iface.error("La ruta a $finaldir %s ya existía. No se continua. " % finaldir)
             return
 
         os.mkdir(finaldir)
@@ -691,6 +688,14 @@ def patch_folder(iface, basedir, finaldir, patchdir):
 
     fpatch = FolderApplyPatch(iface, patchdir)
     fpatch.patch_folder(finaldir)
+
+
+def update_patch_folder_inplace(iface, basedir, finaldir, patchdir, inplace=False):
+    fpatch = FolderCreatePatch(iface, basedir, finaldir, patchdir)
+    print("* ok!", fpatch, _xf(fpatch.root))
+    # TODO: aplicar cambios!!
+
+    # TODO: actualizar base!!
 
 
 def patch_folder_inplace(iface, patchdir, finaldir):
