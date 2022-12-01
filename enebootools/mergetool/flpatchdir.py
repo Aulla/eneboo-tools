@@ -704,16 +704,8 @@ def update_patch_folder(iface, finaldir, srcdir, patchdir, path):
     for mod_file in mod_files:
         update_patch_file(iface, mod_file, patchdir, basedir, srcdir)
     update_xml_patch(iface, fpatch)
-    build_dir("final", fpatch.patch_name)
 
     iface.info("Listo!")
-
-
-def build_dir(target, feat):
-    from enebootools.assembler import AssemblerInterface
-
-    new = AssemblerInterface()
-    return new.do_build(target, feat)
 
 
 def update_patch_file(iface, mod_file, patchdir, basedir, srcdir):
@@ -738,7 +730,11 @@ def update_xml_patch(iface, fpatch):
 
     current_et = etree.parse(patch_xml_file)
     current_root = current_et.getroot()
+
+    found_changes = False
+
     for action in fpatch.root:
+        found_changes = True
         new_path = action.get("path")
         new_name = str(action.get("name"))
         if new_name.endswith("qs"):
@@ -771,6 +767,10 @@ def update_xml_patch(iface, fpatch):
             if os.path.exists(full_file_path):
                 os.remove(full_file_path)
 
+    if not found_changes:
+        iface.info("No hay cambios!")
+        return
+    iface.info("Cambios detectados!")
     iface.info("Guardando cambios en %s" % patch_xml_file)
 
     file_ = open(patch_xml_file, "w", encoding="UTF-8")
