@@ -20,11 +20,13 @@ class BuildInstructions(object):
     def execute(self, rebuild=True):
 
         if os.path.exists(self.dstpath):
-            if not rebuild and self.instructions[0].tag != "UpdatePatchAction":
-                return True
+            if self.instructions[0].tag != "UpdatePatchAction":
+                if not rebuild:
+                    return True
 
-            self.iface.info("Borrando carpeta %s . . . " % self.dstpath)
-            shutil.rmtree(self.dstpath)
+                self.iface.info("Borrando carpeta %s . . . " % self.dstpath)
+                shutil.rmtree(self.dstpath)
+
         if not os.path.exists(self.dstpath):
             os.mkdir(self.dstpath)
         for instruction in self.instructions:
@@ -75,8 +77,8 @@ class BuildInstructions(object):
         flpatchdir.diff_folder(self.iface, src, dst, self.dstpath, inplace=True)
 
     def updatePatch(self, src, dst):
-        self.iface.warn("Actualizando parche (...)%s - (...)%s . . ." % (src[-48:], dst[-48:]))
-        flpatchdir.update_patch_folder_inplace(self.iface, src, dst, self.dstpath, inplace=True)
+        self.iface.info("Actualizando parche (...)%s - (...)%s . . ." % (src[-48:], dst[-48:]))
+        flpatchdir.update_patch_folder(self.iface, src, dst, self.dstpath, self.path)
 
 
 def build_xml_file(iface, xmlfile, rebuild=True):

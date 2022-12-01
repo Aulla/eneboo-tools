@@ -414,10 +414,10 @@ class FeatureObject(BaseObject):
 
         return binstr
 
-    # * fullpatch: calcula el parche de las diferencias entre src y base.
+    # * fullpatch: calcula el parche de las diferencias entre src y final (los últimos cambios).
     def get_updatepatch_actions(self):
         dst_folder = os.path.join(self.fullpath, "build/patch")
-        dep1_folder = os.path.join(self.fullpath, "build/base")
+        dep1_folder = os.path.join(self.fullpath, "build/final")
         dep2_folder = os.path.join(self.fullpath, "build/src")
         binstr = etree.Element("BuildInstructions")
         binstr.set("feature", self.formal_name())

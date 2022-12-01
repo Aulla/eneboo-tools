@@ -690,12 +690,94 @@ def patch_folder(iface, basedir, finaldir, patchdir):
     fpatch.patch_folder(finaldir)
 
 
-def update_patch_folder_inplace(iface, basedir, finaldir, patchdir, inplace=False):
-    fpatch = FolderCreatePatch(iface, basedir, finaldir, patchdir)
-    print("* ok!", fpatch, _xf(fpatch.root))
-    # TODO: aplicar cambios!!
+def update_patch_folder(iface, finaldir, srcdir, patchdir, path):
+    fpatch = FolderCreatePatch(iface, finaldir, srcdir, patchdir)
+    basedir = os.path.join(path, "build/base")
+    mod_files = []
 
-    # TODO: actualizar base!!
+    for action in fpatch.root:
+        if str(action.tag).endswith("deleteFile"):
+            continue
+        mod_files.append([action.get("path"), action.get("name")])
+
+    iface.info("Actualizando ficheros entre %s y %s" % (basedir, srcdir))
+    for mod_file in mod_files:
+        update_patch_file(iface, mod_file, patchdir, basedir, srcdir)
+    update_xml_patch(iface, fpatch)
+    build_dir("final", fpatch.patch_name)
+
+    iface.info("Listo!")
+
+
+def build_dir(target, feat):
+    from enebootools.assembler import AssemblerInterface
+
+    new = AssemblerInterface()
+    return new.do_build(target, feat)
+
+
+def update_patch_file(iface, mod_file, patchdir, basedir, srcdir):
+    file_name = str(mod_file[1])
+    orig_file = os.path.join(basedir, *mod_file)
+    mod_file = os.path.join(srcdir, *mod_file)
+    ext = "XML"
+    if file_name.upper().endswith("QS"):
+        ext = "QS"
+    elif file_name.upper().endswith("PY"):
+        ext = "PY"
+    patch_file = os.path.join(patchdir, file_name)
+    iface.info("Update file %s -> %s, patch: %s" % (orig_file, mod_file, patch_file))
+    iface.set_output_file(patch_file)
+
+    return iface.do_file_diff(ext, orig_file, mod_file)
+
+
+def update_xml_patch(iface, fpatch):
+    patch_xml_file = os.path.join(fpatch.patchdir, fpatch.patch_name + ".xml")
+    iface.info("Calculando cambios en %s" % patch_xml_file)
+
+    current_et = etree.parse(patch_xml_file)
+    current_root = current_et.getroot()
+    for action in fpatch.root:
+        new_path = action.get("path")
+        new_name = str(action.get("name"))
+        if new_name.endswith("qs"):
+            action.set("style", iface.patch_qs_style_name)
+        elif new_name.endswith("py"):
+            action.set("style", iface.patch_py_style_name)
+        else:
+            action.set("style", iface.patch_xml_style_name)
+
+        new_action = str(action.tag).split("}")[1]
+        found = False
+        for current_action in current_root:
+            current_path = current_action.get("path")
+            current_name = current_action.get("name")
+            if current_path == new_path and current_name == new_name:
+                current_root.remove(current_action)
+                iface.info("Borrando %s %s" % (current_path, current_name))
+                del current_action
+                found = True
+                break
+
+        iface.info(
+            "%s linea %s %s"
+            % ("Editando" if found else "Nueva", new_action, os.path.join(new_path, new_name))
+        )
+        current_root.append(action)
+
+        if new_action == "deleteFile":
+            full_file_path = os.path.join(fpatch.patchdir, new_path, new_name)
+            if os.path.exists(full_file_path):
+                os.remove(full_file_path)
+
+    iface.info("Guardando cambios en %s" % patch_xml_file)
+
+    file_ = open(patch_xml_file, "w", encoding="UTF-8")
+    result = _xf(current_et)
+    print("FIXME: Guardame bonito!")
+    print(result)
+    file_.write(result)
 
 
 def patch_folder_inplace(iface, patchdir, finaldir):
