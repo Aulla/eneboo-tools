@@ -56,7 +56,7 @@ class AssemblerInterface(EnebooToolsInterface):
         )
 
         self.save_recent_action = self.parser.declare_action(
-            name="save-recent",
+            name="save",
             args=["feat"],
             options=[],
             description="Para la funcionalidad $feat guarda los cambios recientes en al parche actual",
