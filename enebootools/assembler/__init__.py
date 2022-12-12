@@ -4,6 +4,7 @@
 from enebootools import EnebooToolsInterface
 
 from enebootools.assembler import database as asmdb
+from enebootools.assembler import save_auto
 
 
 class AssemblerInterface(EnebooToolsInterface):
@@ -61,6 +62,17 @@ class AssemblerInterface(EnebooToolsInterface):
             options=[],
             description="Para la funcionalidad $feat guarda los cambios recientes en al parche actual",
             call_function=self.do_save_recent,
+        )
+        self.build_action.set_help_arg(
+            feat="Funcionalidad a construir",
+        )
+
+        self.auto_save_action = self.parser.declare_action(
+            name="save-auto",
+            args=["feat"],
+            options=[],
+            description="Para la funcionalidad $feat guarda los cambios recientes en al parche actual automáticamente",
+            call_function=self.do_save_auto,
         )
         self.build_action.set_help_arg(
             feat="Funcionalidad a construir",
@@ -142,6 +154,13 @@ class AssemblerInterface(EnebooToolsInterface):
             asmdb.do_save_recent(self, feat)
             return self.do_build("final", feat)
 
+        except Exception as e:
+            self.exception(type(e).__name__, str(e))
+
+    def do_save_auto(self, feat):
+        try:
+            obs_ = save_auto.ObserverAction(self, feat)
+            return obs_.run()
         except Exception as e:
             self.exception(type(e).__name__, str(e))
 
