@@ -775,9 +775,11 @@ def update_xml_patch(iface, fpatch):
 
     file_ = open(patch_xml_file, "w", encoding="UTF-8")
     result = _xf(current_et)
-    print("FIXME: Guardame bonito!")
-    print(result)
+    result = result.replace("/></flpatch", "/>\n</flpatch")
+    result = result.replace("\n<flpatch", "\n  <flpatch")
+    result = result.replace("/><flpatch", "/>\n  <flpatch")
     file_.write(result)
+    file_.close()
 
 
 def patch_folder_inplace(iface, patchdir, finaldir):
