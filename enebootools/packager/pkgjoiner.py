@@ -1,5 +1,5 @@
 # encoding: UTF-8
-import zlib, os, sys, re, hashlib
+import zlib, os, sys, re, hashlib, pathlib
 from enebootools.packager.pkgsplitter import to_uint32
 from enebootools.packager import __version__, __PROGRAM__NAME__
 from enebootools.lib.utils import find_files
@@ -151,6 +151,11 @@ def createpkg(iface, modulefolder, dst_file, emulate_mode):
 
             break
 
+        path_dirs_list = pathlib.Path(fpath)
+        if "test" in path_dirs_list.parts and not iface.include_test:
+            print("carpeta %s incluye carpeta 'test' en path. Ignorado." % (fpath))
+            continue
+
         files = find_files(fpath)
         modulename = re.search("^\w+", module).group(0)
         if modulename in list_modules:
@@ -172,6 +177,9 @@ def createpkg(iface, modulefolder, dst_file, emulate_mode):
 
             file_basename = os.path.basename(filename)
             filepath = os.path.join(fpath, filename)
+
+
+
             sha1text = hashlib.sha1(open(filepath, "rb").read()).hexdigest()
             sha1text = sha1text.upper()
             shasum += sha1text
