@@ -151,11 +151,6 @@ def createpkg(iface, modulefolder, dst_file, emulate_mode):
 
             break
 
-        path_dirs_list = pathlib.Path(fpath)
-        if "test" in path_dirs_list.parts and not iface.include_test:
-            print("carpeta %s incluye carpeta 'test' en path. Ignorado." % (fpath))
-            continue
-
         files = find_files(fpath)
         modulename = re.search("^\w+", module).group(0)
         if modulename in list_modules:
@@ -166,19 +161,22 @@ def createpkg(iface, modulefolder, dst_file, emulate_mode):
         list_modules.append(modulename)
         for filename in files:
             bname, ext = os.path.splitext(filename)
-
-            if bname.startswith("test_") and not iface.include_test:
-                # print("Ignorando %s" % bname)
-                continue
-
+            
             if ext not in load_ext:
                 ignored_ext.add(ext)
                 continue
 
+            filepath = os.path.abspath(os.path.join(fpath, filename))
+            path_dirs_list = pathlib.Path(filepath)
+            if "test" in path_dirs_list.parts and not iface.include_test:
+                print("fichero %s incluye carpeta 'test' en path. Ignorado." % (filepath))
+                continue
+
+            if os.path.basename(filename).startswith("test_") and not iface.include_test:
+                print("fichero %s comienza por 'test_'. Ignorado." % (filepath))
+                continue
+
             file_basename = os.path.basename(filename)
-            filepath = os.path.join(fpath, filename)
-
-
 
             sha1text = hashlib.sha1(open(filepath, "rb").read()).hexdigest()
             sha1text = sha1text.upper()
