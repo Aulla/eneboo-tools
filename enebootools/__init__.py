@@ -8,7 +8,7 @@ from pprint import pformat
 import enebootools.parseargs as pa
 
 
-__VERSION__ = "1.7.3"
+__VERSION__ = "1.8"
 QS_EXTEND_MODE = "legacy"
 
 
