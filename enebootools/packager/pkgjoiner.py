@@ -167,7 +167,7 @@ def createpkg(iface, modulefolder, dst_file, emulate_mode):
         for filename in files:
             bname, ext = os.path.splitext(filename)
 
-            if bname.startswith("test") and not iface.include_test:
+            if bname.startswith("test_") and not iface.include_test:
                 # print("Ignorando %s" % bname)
                 continue
 
