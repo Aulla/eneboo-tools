@@ -408,9 +408,9 @@ class FolderCreatePatch(object):
         self.added_files = finaldir_files - basedir_files
         self.deleted_files = basedir_files - finaldir_files
         self.common_files = finaldir_files & basedir_files
-        # print "+" , self.added_files
-        # print "-" , self.deleted_files
-        # print "=" , self.common_files
+        # iface.info("+ %s" % self.added_files)
+        # iface.info("- %s" % self.deleted_files)
+        # print("=", self.common_files)
 
         if basedir and finaldir:
 
@@ -691,40 +691,79 @@ def patch_folder(iface, basedir, finaldir, patchdir):
 
 
 def update_patch_folder(iface, finaldir, srcdir, patchdir, path):
-    fpatch = FolderCreatePatch(iface, finaldir, srcdir, patchdir)
+
     basedir = os.path.join(path, "build/base")
     mod_files = []
 
+    fpatch = FolderCreatePatch(iface, finaldir, srcdir, patchdir)
     for action in fpatch.root:
-        if str(action.tag).endswith("deleteFile"):
+
+        src_file = os.path.join(srcdir, action.get("path"), action.get("name"))
+        final_file = os.path.join(finaldir, action.get("path"), action.get("name"))
+        base_file = os.path.join(basedir, action.get("path"), action.get("name"))
+        src_time = os.path.getmtime(src_file) if os.path.exists(src_file) else 0
+        final_time = os.path.getmtime(final_file) if os.path.exists(final_file) else 0
+        if src_time and final_time and src_time <= final_time:
+            fpatch.root.remove(action)
             continue
+
+        if str(action.tag).lower().endswith(
+            ("patchscript", "patchxml", "pathpy")
+        ) and not os.path.exists(os.path.join(basedir, action.get("path"), action.get("name"))):
+            action.tag = "{http://www.abanqg2.com/es/directori/abanq-ensambla/?flpatch}addFile"
+        # if str(action.tag).endswith("deleteFile"):
+        #    fpatch.root.remove(action)
+
         mod_files.append([action.get("path"), action.get("name")])
 
     iface.info("Actualizando ficheros entre %s y %s" % (basedir, srcdir))
     for mod_file in mod_files:
-        update_patch_file(iface, mod_file, patchdir, basedir, srcdir)
-    update_xml_patch(iface, fpatch)
+        update_patch_file(iface, mod_file, patchdir, basedir, srcdir, finaldir)
+
+    iface.info("Changes : %s" % mod_files)
+
+    update_xml_patch(iface, fpatch, basedir)
 
     iface.info("Listo!")
 
 
-def update_patch_file(iface, mod_file, patchdir, basedir, srcdir):
+def update_patch_file(iface, mod_file, patchdir, basedir, srcdir, finaldir):
     file_name = str(mod_file[1])
-    orig_file = os.path.join(basedir, *mod_file)
-    mod_file = os.path.join(srcdir, *mod_file)
+    base_file = os.path.join(basedir, *mod_file)
+    final_file = os.path.join(finaldir, *mod_file)
+    src_file = os.path.join(srcdir, *mod_file)
+
     ext = "XML"
     if file_name.upper().endswith("QS"):
         ext = "QS"
     elif file_name.upper().endswith("PY"):
         ext = "PY"
     patch_file = os.path.join(patchdir, file_name)
-    iface.info("Update file %s -> %s, patch: %s" % (orig_file, mod_file, patch_file))
+
     iface.set_output_file(patch_file)
 
-    return iface.do_file_diff(ext, orig_file, mod_file)
+    if (
+        os.path.exists(final_file) and os.path.exists(src_file) and os.path.exists(base_file)
+    ):  # Si existe en base , final y src Update
+        iface.info("Update file %s -> %s, patch: %s" % (src_file, base_file, patch_file))
+        return iface.do_file_diff(ext, base_file, src_file)
+    elif not os.path.exists(base_file) and os.path.exists(
+        src_file
+    ):  # Si no existe en base y si en src es nuevo!
+        iface.info("New file %s -> %s, patch: %s" % (src_file, base_file, patch_file))
+        shutil.copyfile(src_file, final_file)
+        with open(src_file, "rb") as file_:
+            iface.output.write(file_.read())
+    elif os.path.exists(base_file) and not os.path.exists(
+        src_file
+    ):  # Si no existe en base y si en src, es delete!
+        iface.info("Delete file %s -> %s, patch: %s" % (src_file, final_file, patch_file))
+        os.remove(final_file)
+
+    return True
 
 
-def update_xml_patch(iface, fpatch):
+def update_xml_patch(iface, fpatch, basedir):
     patch_xml_file = os.path.join(fpatch.patchdir, fpatch.patch_name + ".xml")
     iface.info("Calculando cambios en %s" % patch_xml_file)
 
@@ -760,12 +799,17 @@ def update_xml_patch(iface, fpatch):
             "%s linea %s %s"
             % ("Editando" if found else "Nueva", new_action, os.path.join(new_path, new_name))
         )
-        current_root.append(action)
 
         if new_action == "deleteFile":
-            full_file_path = os.path.join(fpatch.patchdir, new_path, new_name)
+            full_file_path = os.path.join(fpatch.patchdir, new_name)
             if os.path.exists(full_file_path):
                 os.remove(full_file_path)
+
+            full_file_base = os.path.join(basedir, current_path, current_name)
+            if not os.path.exists(full_file_base):
+                continue
+
+        current_root.append(action)
 
     if not found_changes:
         iface.info("No hay cambios!")
