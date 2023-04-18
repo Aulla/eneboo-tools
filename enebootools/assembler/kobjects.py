@@ -81,7 +81,7 @@ class BaseObject(object):
         for modname in self.required_modules:
             obj = ModuleObject.find(modname)
             if obj is None:
-                self.iface.warn("Modulo con nombre %s no encontrado" % modname)
+                self.iface.info("Modulo con nombre %s no encontrado" % modname)
                 continue
             new_reqs = [
                 modulename
@@ -105,7 +105,7 @@ class BaseObject(object):
         for featname in self.all_required_features:
             obj = FeatureObject.find(featname)
             if obj is None:
-                self.iface.warn("Funcionalidad con nombre %s no encontrada" % featname)
+                self.iface.info("Funcionalidad con nombre %s no encontrada" % featname)
                 continue
             new_reqs = [
                 modulename
@@ -134,7 +134,7 @@ class BaseObject(object):
         for featname in self.required_features:
             obj = FeatureObject.find(featname)
             if obj is None:
-                self.iface.warn("Funcionalidad con nombre %s no encontrada" % featname)
+                self.iface.info("Funcionalidad con nombre %s no encontrada" % featname)
                 continue
             new_reqs = [
                 featurename
