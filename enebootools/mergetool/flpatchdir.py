@@ -9,7 +9,7 @@ import time
 import hashlib
 import fnmatch
 
-from enebootools.mergetool import flpatchqs, flpatchlxml, flpatchpy
+from enebootools.mergetool import flpatchqs, flpatchlxml, flpatchpy, flpatchapipy
 
 
 def filepath():
@@ -99,7 +99,6 @@ class FolderApplyPatch(object):
         if self.root is None:
             return
         for action in self.root:
-
             actionname = action.tag
             if not isinstance(actionname, str):
                 continue
@@ -317,7 +316,10 @@ class FolderApplyPatch(object):
         old_style, self.iface.patch_py_style_name = self.iface.patch_py_style_name, style
         self.iface.set_output_file(dst + ".patched")
         if style in ["legacy"]:
-            ret = flpatchpy.patch_py(self.iface, dst, src)
+            if filename.endswith(("_api.py", "_schema.py", "_model.py")):
+                ret = flpatchapipy.patch_py(self.iface, dst, src)
+            else:
+                ret = flpatchpy.patch_py(self.iface, dst, src)
         elif style in ["qsdir"]:
             ret = flpatchpy.patch_py_dir(self.iface, dst, src)
         else:
@@ -413,7 +415,6 @@ class FolderCreatePatch(object):
         # print("=", self.common_files)
 
         if basedir and finaldir:
-
             iface.info("Calculando diferencias . . . ")
 
             file_actions = []
@@ -691,13 +692,11 @@ def patch_folder(iface, basedir, finaldir, patchdir):
 
 
 def update_patch_folder(iface, finaldir, srcdir, patchdir, path):
-
     basedir = os.path.join(path, "build/base")
     mod_files = []
 
     fpatch = FolderCreatePatch(iface, finaldir, srcdir, patchdir)
     for action in fpatch.root:
-
         src_file = os.path.join(srcdir, action.get("path"), action.get("name"))
         final_file = os.path.join(finaldir, action.get("path"), action.get("name"))
         base_file = os.path.join(basedir, action.get("path"), action.get("name"))

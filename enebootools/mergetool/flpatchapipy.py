@@ -19,6 +19,7 @@
     final.
     
 """
+# PARA: _model, _schema y _api.py
 
 import re, os.path, difflib, math, itertools, shutil, sys, io
 import pprint, subprocess
@@ -1777,7 +1778,7 @@ def patch_py(iface, base, patch):
 
             # Si la clase que vamos a heredar es la que está en el iface, entonces
             #   en el iface habrá que cambiarlo por la nuestra.
-            if clbase["iface"]:  # -> primero comprobar que tenemos iface.
+            """ if clbase["iface"]:  # -> primero comprobar que tenemos iface.
                 iface.debug2r(iface=clbase["iface"])
                 if clbase["iface"]["classname"] == extending:
                     iface.debug(
@@ -1792,7 +1793,7 @@ def patch_py(iface, base, patch):
                     "No existe declaración de iface en el código (aplicando patch para clase %s)"
                     % newclass
                 )
-                todo.append("create-iface")
+                todo.append("create-iface") """
 
             # Si la clase del parche que estamos aplicando pasa a extender otra
             # clase con nombre distinto, actualizaremos también los constructores.
