@@ -107,10 +107,11 @@ class BaseObject(object):
             if obj is None:
                 self.iface.info("Funcionalidad con nombre %s no encontrada" % featname)
                 continue
+
             new_reqs = [
                 modulename
                 for modulename in obj._get_full_required_modules()
-                if modulename not in req
+                if modulename not in req and modulename not in myreq
             ]
             if self.type == "prj":
                 for n in new_reqs:
@@ -123,6 +124,7 @@ class BaseObject(object):
             req += new_reqs
 
         req += [modulename for modulename in myreq if modulename not in req]
+
         self.all_required_modules = req
         return req
 
