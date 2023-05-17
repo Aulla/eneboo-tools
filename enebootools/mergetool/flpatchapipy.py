@@ -206,7 +206,7 @@ def pyclass_reader(iface, file_name, file_lines):
                 if heu_cname:
                     heu_dtype = "class_definition"
 
-            if heu_dtype and dtype != "delete_class":
+            """ if heu_dtype and dtype != "delete_class":
                 heu_line = "# @%s %s #" % (heu_dtype, heu_cname)
                 myline = "# @%s %s #" % (dtype, cname)
                 if "_" in cname:
@@ -222,7 +222,7 @@ def pyclass_reader(iface, file_name, file_lines):
                     dtype, cname = heu_dtype, heu_cname
                     classpatch += ["@@ -%d,1 +%d,1 @@" % (n + 1, n + 1)]
                     classpatch += ["-%s" % line2.rstrip()]
-                    classpatch += ["+%s" % heu_line]
+                    classpatch += ["+%s" % heu_line] """
 
             npos = len(linelist)
             if dtype == "class_declaration":
