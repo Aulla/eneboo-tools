@@ -12,6 +12,7 @@ class AssemblerInterface(EnebooToolsInterface):
 
     def __init__(self, setup_parser=True):
         EnebooToolsInterface.__init__(self, False)
+        self.short_mode = False
         if setup_parser:
             self.setup_parser()
 
@@ -117,6 +118,14 @@ class AssemblerInterface(EnebooToolsInterface):
             feat="Funcionalidad a construir",
         )
 
+        self.parser.declare_option(
+            name="short",
+            short="s",
+            description="Usa el modo de definiciones corto",
+            level="parser",
+            call_function=self.set_short_mode,
+        )
+
     # :::: ACTIONS ::::
 
     def do_dbupdate(self):
@@ -175,3 +184,6 @@ class AssemblerInterface(EnebooToolsInterface):
             return asmdb.do_new(self, subfoldername, description, patchurl)
         except Exception as e:
             self.exception(type(e).__name__, str(e))
+
+    def set_short_mode(self):
+        self.short_mode = True

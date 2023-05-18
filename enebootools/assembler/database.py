@@ -561,7 +561,10 @@ def do_new(iface, subfoldername=None, description=None, patchurl=None):
             )
 
     while True:
-        fdstpath = os.path.join(fpath, "%s%s-%s" % (ftype, fcode, fname))
+        if iface.short_mode:
+            fdstpath = os.path.join(fpath, "%s" % (fname))
+        else:
+            fdstpath = os.path.join(fpath, "%s%s-%s" % (ftype, fcode, fname))
         print()
         print("**** Asistente de creación de nueva funcionalidad ****")
         print()
@@ -679,7 +682,10 @@ def do_new(iface, subfoldername=None, description=None, patchurl=None):
                     k1 = []
                     v1 = []
                     for feature in oi.features():
-                        k, v = feature.code or feature.name, feature.formal_name()
+                        k, v = (
+                            feature.code or feature.name,
+                            feature.name if iface.short_mode else feature.formal_name(),
+                        )
                         if v in fdep_features:
                             continue
                         k1.append(k)
@@ -698,7 +704,10 @@ def do_new(iface, subfoldername=None, description=None, patchurl=None):
                     k1 = []
                     v1 = []
                     for feature in oi.features():
-                        k, v = feature.code or feature.name, feature.formal_name()
+                        k, v = (
+                            feature.code or feature.name,
+                            feature.name if iface.short_mode else feature.formal_name(),
+                        )
                         if v not in fdep_features:
                             continue
                         k1.append(k)
