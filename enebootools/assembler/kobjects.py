@@ -13,6 +13,7 @@ class BaseObject(object):
     _by_name = {}
     _by_relpath = {}
     _by_formal_name = {}
+    _by_abspath = {}
 
     def __init__(self, iface, obj):
         self.iface = iface
@@ -35,6 +36,10 @@ class BaseObject(object):
         self.__class__._by_relpath[(self.__class__.__name__, str(obj.relpath))] = self
         self.__class__._by_formal_name[(self.__class__.__name__, self.formal_name())] = self
 
+        self.__class__._by_abspath[
+            (self.__class__.__name__, str(obj.abspath), self.formal_name())
+        ] = self
+
     def get_info(self):
         self.info = {"provides": [], "requires": []}
         return self.info
@@ -44,15 +49,37 @@ class BaseObject(object):
 
     @classmethod
     def by_name(self, name):
-        return self._by_name.get((self.__name__, str(name)), None)
+        result = self._by_name.get((self.__name__, str(name)), None)
+        # print("1 ****", result)
+        return result
 
     @classmethod
     def by_formal_name(self, name):
-        return self._by_formal_name.get((self.__name__, str(name)), None)
+        result = self._by_formal_name.get((self.__name__, str(name)), None)
+        # print("1 ***", result)
+        return result
 
     @classmethod
     def by_relpath(self, relpath):
-        return self._by_relpath.get((self.__name__, str(relpath)), None)
+        result = self._by_relpath.get((self.__name__, str(relpath)), None)
+        # print("1 **", result)
+        return result
+
+    @classmethod
+    def by_abspath(self, relpath):
+        result = None
+        for num, key in enumerate([item for item in self._by_abspath if item[0] == self.__name__]):
+            obj = self._by_abspath[key]
+            if str(obj.fullpath).endswith("/%s" % relpath):
+                result = obj
+                break
+        result = [
+            value
+            for key, value in self._by_abspath.items()
+            if key[0] == self.__name__ and value.fullpath.endswith("/%s" % relpath)
+        ]
+        # print("1 *", result, getattr(result, "fullpath", None), relpath)
+        return result[0] if result else None
 
     @classmethod
     def items(self):
@@ -60,7 +87,12 @@ class BaseObject(object):
 
     @classmethod
     def find(self, name):
-        return self.by_formal_name(name) or self.by_name(name) or self.by_relpath(name)
+        return (
+            self.by_abspath(name)
+            or self.by_formal_name(name)
+            or self.by_name(name)
+            or self.by_relpath(name)
+        )
 
     def setup(self):
         pass
@@ -75,14 +107,19 @@ class BaseObject(object):
 
     def _get_full_required_modules(self):
         if self.all_required_modules:
+            # print("***", self, self.all_required_modules)
             return self.all_required_modules
         req = []
         myreq = []
         for modname in self.required_modules:
             obj = ModuleObject.find(modname)
             if obj is None:
-                self.iface.info("Modulo con nombre %s no encontrado" % modname)
+                self.iface.info(
+                    "Modulo con nombre %s no encontrado (requerido por %s )"
+                    % (modname, self.formal_name())
+                )
                 continue
+            # print("*", self, modname)
             new_reqs = [
                 modulename
                 for modulename in obj._get_full_required_modules()
@@ -98,14 +135,17 @@ class BaseObject(object):
                     )
 
             req += new_reqs
-            myreq.append(obj.formal_name())
+            myreq.append(modname)
 
         self.all_required_features = self._get_full_required_features()
 
         for featname in self.all_required_features:
             obj = FeatureObject.find(featname)
             if obj is None:
-                self.iface.info("Funcionalidad con nombre %s no encontrada" % featname)
+                self.iface.info(
+                    "Funcionalidad con nombre %s no encontrada (requerida por %s )"
+                    % (featname, self.formal_name())
+                )
                 continue
 
             new_reqs = [
@@ -121,10 +161,10 @@ class BaseObject(object):
                         "Proyecto %s, se agrega modulo %s solicitado por funcionalidad %s"
                         % (self.formal_name(), n, featname)
                     )
+
             req += new_reqs
 
         req += [modulename for modulename in myreq if modulename not in req]
-
         self.all_required_modules = req
         return req
 
@@ -136,7 +176,10 @@ class BaseObject(object):
         for featname in self.required_features:
             obj = FeatureObject.find(featname)
             if obj is None:
-                self.iface.info("Funcionalidad con nombre %s no encontrada" % featname)
+                self.iface.info(
+                    "Funcionalidad con nombre %s no encontrada (requerida por %s )"
+                    % (featname, self.formal_name())
+                )
                 continue
             new_reqs = [
                 featurename
@@ -209,12 +252,14 @@ class FeatureObject(BaseObject):
         self.description = cfg.feature.description
         self.type = cfg.feature.type
         self.dstfolder = None
+
         self.required_modules = read_file_list(
             self.fullpath, "conf/required_modules", errlog=self.iface.warn
         )
         self.required_features = read_file_list(
             self.fullpath, "conf/required_features", errlog=self.iface.warn
         )
+
         self.qs_extend_mode = cfg.feature.qs_extend_mode
 
         self.patch_series = read_file_list(
@@ -267,6 +312,7 @@ class FeatureObject(BaseObject):
             binstr.set("dstfolder", self.dstfolder)
         etree.SubElement(binstr, "Message", text="Copiando módulos . . .")
         for modulename in self._get_full_required_modules():
+            # print("------->", self.formal_name(), self, modulename)
             module = ModuleObject.find(modulename)
             cpfolder = etree.SubElement(binstr, "CopyFolderAction")
             cpfolder.set("src", module.fullpath)
@@ -583,6 +629,7 @@ class ObjectIndex(object, metaclass=Singleton):
 
     def get_build_actions(self, target, func, dstfolder=None):
         feature = FeatureObject.find(func)
+        # print("*******************", func, feature)
         if not feature:
             self.iface.error("Funcionalidad %s desconocida." % func)
             return None

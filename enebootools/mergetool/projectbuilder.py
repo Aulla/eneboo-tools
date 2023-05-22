@@ -18,7 +18,6 @@ class BuildInstructions(object):
         self.dstpath = os.path.join(self.path, self.dstfolder)
 
     def execute(self, rebuild=True):
-
         if os.path.exists(self.dstpath):
             if self.instructions[0].tag != "UpdatePatchAction":
                 if not rebuild:
@@ -51,7 +50,7 @@ class BuildInstructions(object):
             create_dst = True
         if create_dst == "no":
             create_dst = False
-        self.iface.info("Copiando %s . . . " % (dst))
+        self.iface.info("Copiando %s : %s -> %s. . . " % (dst, src, self.dstpath))
         dst = os.path.join(self.dstpath, dst)
         if not os.path.exists(src):
             self.iface.error("La carpeta %s no existe" % src)
