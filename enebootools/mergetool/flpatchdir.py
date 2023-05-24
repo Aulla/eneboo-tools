@@ -254,7 +254,7 @@ class FolderApplyPatch(object):
         self.iface.verbosity = old_verbosity
         self.iface.patch_qs_style_name = old_style
         if not ret:
-            self.iface.warn("Hubo algún problema aplicando el parche QS para %s" % filename)
+            self.iface.debug("Hubo algún problema aplicando el parche QS para %s" % filename)
             try:
                 os.unlink(dst + ".patched")
             except IOError:
@@ -286,7 +286,7 @@ class FolderApplyPatch(object):
         self.iface.output = old_output
         self.iface.verbosity = old_verbosity
         if not ret:
-            self.iface.warn("Hubo algún problema aplicando el parche XML para %s" % filename)
+            self.iface.debug("Hubo algún problema aplicando el parche XML para %s" % filename)
             try:
                 os.unlink(dst + ".patched")
             except IOError:
@@ -328,7 +328,7 @@ class FolderApplyPatch(object):
         self.iface.verbosity = old_verbosity
         self.iface.patch_qs_style_name = old_style
         if not ret:
-            self.iface.warn("Hubo algún problema aplicando el parche PY para %s" % filename)
+            self.iface.debug("Hubo algún problema aplicando el parche PY para %s" % filename)
             try:
                 os.unlink(dst + ".patched")
             except IOError:
