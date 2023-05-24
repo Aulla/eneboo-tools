@@ -68,17 +68,20 @@ class BaseObject(object):
     @classmethod
     def by_abspath(self, relpath):
         result = None
-        for num, key in enumerate([item for item in self._by_abspath if item[0] == self.__name__]):
-            obj = self._by_abspath[key]
-            if str(obj.fullpath).endswith("/%s" % relpath):
-                result = obj
-                break
-        result = [
-            value
-            for key, value in self._by_abspath.items()
-            if key[0] == self.__name__ and value.fullpath.endswith("/%s" % relpath)
-        ]
-        # print("1 *", result, getattr(result, "fullpath", None), relpath)
+        if "2.4.0" in relpath:
+            for num, key in enumerate(
+                [item for item in self._by_abspath if item[0] == self.__name__]
+            ):
+                obj = self._by_abspath[key]
+                if str(obj.fullpath).endswith("/%s" % relpath):
+                    result = obj
+                    break
+            result = [
+                value
+                for key, value in self._by_abspath.items()
+                if key[0] == self.__name__ and value.fullpath.endswith("/%s" % relpath)
+            ]
+            # print("1 *", result, getattr(result, "fullpath", None), relpath)
         return result[0] if result else None
 
     @classmethod
@@ -165,7 +168,20 @@ class BaseObject(object):
             req += new_reqs
 
         req += [modulename for modulename in myreq if modulename not in req]
-        self.all_required_modules = req
+        new_list = []
+        for module_name in req:
+            if "/" not in module_name:
+                module_obj = ModuleObject.find(module_name)
+                formal_name = module_obj.formal_name()
+                if formal_name in req:
+                    self.iface.debug(
+                        "Omitiendo módulo %s (ya existe %s)" % (module_name, formal_name)
+                    )
+                    continue
+
+            new_list.append(module_name)
+
+        self.all_required_modules = new_list
         return req
 
     def _get_full_required_features(self):
@@ -311,8 +327,8 @@ class FeatureObject(BaseObject):
         if self.dstfolder:
             binstr.set("dstfolder", self.dstfolder)
         etree.SubElement(binstr, "Message", text="Copiando módulos . . .")
+        # print("------->", self._get_full_required_modules())
         for modulename in self._get_full_required_modules():
-            # print("------->", self.formal_name(), self, modulename)
             module = ModuleObject.find(modulename)
             cpfolder = etree.SubElement(binstr, "CopyFolderAction")
             cpfolder.set("src", module.fullpath)
