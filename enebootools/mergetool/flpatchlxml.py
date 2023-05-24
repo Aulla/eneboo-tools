@@ -942,7 +942,7 @@ class XMLDiffer(object):
                     % (repr(searching), repr(actionname), close_matches)
                 )
             else:
-                self.iface.warn(
+                self.iface.info(
                     "No se encontró elemento %s para %s entre %s"
                     % (repr(searching), repr(actionname), close_matches)
                 )
@@ -988,7 +988,7 @@ class XMLDiffer(object):
             alternatives = element.xpath("*/@ctx-id")
             close_matches = difflib.get_close_matches(searching, alternatives, 4, 0.4)
 
-            self.iface.warn(
+            self.iface.info(
                 "No se encontró el elemento %s entre %s y se agregó el nodo al final"
                 % (searching, close_matches)
             )
