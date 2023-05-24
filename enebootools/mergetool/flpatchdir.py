@@ -461,6 +461,7 @@ class FolderCreatePatch(object):
         script_exts = ".qs".split(" ")
         xml_exts = ".xml .ui .mtd".split(" ")
         php_exts = ".php".split(" ")
+        py_exts = ".py".split(" ")
 
         path, name = os.path.split(filename)
         froot, ext = os.path.splitext(name)
@@ -471,6 +472,8 @@ class FolderCreatePatch(object):
         elif ext in xml_exts:
             # flpatch:patchXml
             self.create_action("patchXml", filename)
+        elif ext in py_exts:
+            self.create_action("patchPy", filename)
         # elif ext in php_exts:
         # TODO: flpatch:patchPhp
         else:
@@ -828,9 +831,13 @@ def update_xml_patch(iface, fpatch, basedir):
 
     file_ = open(patch_xml_file, "w", encoding="UTF-8")
     result = _xf(current_et)
-    result = result.replace("/></flpatch", "/>\n</flpatch")
-    result = result.replace("\n<flpatch", "\n  <flpatch")
-    result = result.replace("/><flpatch", "/>\n  <flpatch")
+    result = result.replace(
+        'xmlns:flpatch="http://www.abanqg2.com/es/directori/abanq-ensambla/?flpatch"', ""
+    )
+    result = result.replace("><flpatch", ">\n    <flpatch")
+    result = result.replace("\n  <flpatch", "\n    <flpatch")
+    result = result.replace('">', '" >')
+    result = result.replace('"/>', '" />')
     file_.write(result)
     file_.close()
 

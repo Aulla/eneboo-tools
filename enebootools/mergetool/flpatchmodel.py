@@ -152,16 +152,16 @@ def modelclass_reader(iface, file_name, file_lines):
     classpatch = []
     for n, line in enumerate(file_lines):
         line2 = latin1_to_ascii(line)
-        m = re.search(r"#\s*@\s*([\w\.,;-]+)\s+([^ #]+)?\s*#", line2)
+        m = re.search(r"#\s*@\s*([\w\.,;-]+)\s+([^ #]+)", line2)
         if m:
-            m2 = re.search("^\s*# @(\w+)( \w+)?\s#\s*$", line)
+            m2 = re.search("^\s*# @(\w+)( \w+)", line)
             if not m2:
                 iface.warn("Formato incorrecto de la linea %s" % repr(line))
             dtype = m.group(1)
             cname = m.group(2)
             for n2, sline in enumerate(file_lines[n + 1 :]):
                 sline2 = latin1_to_ascii(sline)
-                sm = re.search(r"#\s*@\s*([\w\.,;-]+)\s+([^ #]+)?\s*#", sline2)
+                sm = re.search(r"#\s*@\s*([\w\.,;-]+)\s+([^ #]+)", sline2)
                 if sm:
                     break
             n2 += n + 1
@@ -1129,7 +1129,6 @@ def patch_class_advanced(orig, patch, filename="unknown"):
         last_a_diff = 0
         last_b_diff = 0
         while True:
-
             if a_diffs and a_diffs[0][0] == base_pos:
                 f_a_diff = a_diffs.pop(0)
                 if f_a_diff[1] == "+ ":
