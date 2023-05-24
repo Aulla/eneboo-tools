@@ -214,7 +214,7 @@ class FolderApplyPatch(object):
         pathname = os.path.join(path, filename)
         dst = os.path.join(folder, pathname)
         if not os.path.exists(dst):
-            self.iface.warn(
+            self.iface.debug(
                 "Ignorando reemplazo de fichero para %s (el fichero no existe)" % filename
             )
             return
@@ -764,9 +764,19 @@ def update_patch_file(iface, mod_file, patchdir, basedir, srcdir, finaldir):
 
 def update_xml_patch(iface, fpatch, basedir):
     patch_xml_file = os.path.join(fpatch.patchdir, fpatch.patch_name + ".xml")
-    iface.info("Calculando cambios en %s" % patch_xml_file)
-
-    current_et = etree.parse(patch_xml_file)
+    iface.warn("Calculando cambios en %s" % patch_xml_file)
+    try:
+        encoding = "iso-8859-15"
+        parser = etree.XMLParser(
+            ns_clean=False,
+            encoding=encoding,
+            # .. recover funciona y parsea cuasi cualquier cosa.
+            recover=True,
+            remove_blank_text=True,
+        )
+        current_et = etree.parse(patch_xml_file, parser)
+    except IOError as e:
+        iface.error("No se pudo leer el parche: " + str(e))
     current_root = current_et.getroot()
 
     found_changes = False
