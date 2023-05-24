@@ -234,7 +234,7 @@ class FolderApplyPatch(object):
         dst = os.path.join(folder, pathname)
 
         if not os.path.exists(dst):
-            self.iface.warn("Ignorando parche QS para %s (el fichero no existe)" % filename)
+            self.iface.debug("Ignorando parche QS para %s (el fichero no existe)" % filename)
             return
         self.iface.info("Aplicando parche QS %s . . ." % filename)
         old_output = self.iface.output
@@ -273,7 +273,7 @@ class FolderApplyPatch(object):
         dst = os.path.join(folder, pathname)
 
         if not os.path.exists(dst):
-            self.iface.warn("Ignorando parche XML para %s (el fichero no existe)" % filename)
+            self.iface.debug("Ignorando parche XML para %s (el fichero no existe)" % filename)
             return
         self.iface.info("Aplicando parche XML %s . . ." % filename)
         old_output = self.iface.output
@@ -305,7 +305,7 @@ class FolderApplyPatch(object):
         dst = os.path.join(folder, pathname)
 
         if not os.path.exists(dst):
-            self.iface.warn("Ignorando parche PY para %s (el fichero no existe)" % filename)
+            self.iface.debug("Ignorando parche PY para %s (el fichero no existe)" % filename)
             return
         self.iface.info("Aplicando parche PY %s . . ." % filename)
         old_output = self.iface.output

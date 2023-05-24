@@ -339,7 +339,6 @@ class XMLFormatParser(object):
         return ret
 
     def clean_ctxid(self):
-
         for element in self.root.xpath("//delete-me-when-cleaning"):
             parent = element.getparent()
             parent.remove(element)
@@ -781,7 +780,6 @@ class XMLDiffer(object):
         return doc
 
     def apply_pre_save_final(self, doc):
-
         for elem in self.style.xpath("pre-save-final/*"):
             if elem.tag == "{http://www.w3.org/1999/XSL/Transform}stylesheet":
                 doc = self.apply_xsl(elem, doc)
@@ -799,7 +797,6 @@ class XMLDiffer(object):
         return newdoc
 
     def select_patch_applyfn(self):
-
         known_tags = {
             "{http://www.xmldb.org/xupdate}modifications": self.patch_xupdate,
             "modifications": self.patch_xupdate,
@@ -1132,10 +1129,10 @@ def patch_lxml(iface, patch, base):
     file_patch_sz = os.path.getsize(patch)
 
     if file_base_sz < 32:
-        iface.error("Fichero BASE sólo tiene %d bytes (%r)" % (file_base_sz, base))
+        iface.debug("Fichero BASE sólo tiene %d bytes (%r)" % (file_base_sz, base))
         return
     if file_patch_sz < 32:
-        iface.error("Fichero BASE sólo tiene %d bytes (%r)" % (file_patch_sz, patch))
+        iface.debug("Fichero BASE sólo tiene %d bytes (%r)" % (file_patch_sz, patch))
         return
 
     style = styles[0]
