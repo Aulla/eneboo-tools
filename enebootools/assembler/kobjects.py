@@ -109,8 +109,13 @@ class BaseObject(object):
             obj.finish_setup()
 
     def _get_full_required_modules(self):
-        if self.all_required_modules:
+        import enebootools
+
+        modo = enebootools.QS_EXTEND_MODE
+
+        if self.all_required_modules and modo != "yeboyebo":
             return self.all_required_modules
+
         req = []
         myreq = []
 
@@ -123,72 +128,85 @@ class BaseObject(object):
                 )
                 continue
 
-            new_reqs = [
-                modulename
-                for modulename in obj._get_full_required_modules()
-                if modulename not in req
-            ]
-            if self.type == "prj":
-                for n in new_reqs:
-                    if n in self.required_modules:
-                        continue
-                    self.iface.debug(
-                        "Proyecto %s, se agrega modulo %s solicitado por %s"
-                        % (self.formal_name(), n, modname)
-                    )
+            new_reqs = []
+            if modo == "yeboyebo":
+                if obj.type == "mod":
+                    for module_def in obj.required_modules:
+                        obj2 = ModuleObject.find(module_def)
+                        formal_name = obj2.formal_name()
+                        if formal_name not in self.required_modules:
+                            new_reqs.append(formal_name)
+            else:
+                new_reqs = [
+                    modulename
+                    for modulename in obj._get_full_required_modules()
+                    if modulename not in req
+                ]
+                if self.type == "prj":
+                    for n in new_reqs:
+                        if n in self.required_modules:
+                            continue
+                        self.iface.debug(
+                            "Proyecto %s, se agrega modulo %s solicitado por %s"
+                            % (self.formal_name(), n, modname)
+                        )
 
             req += new_reqs
             myreq.append(modname)
-
-        self.all_required_features = self._get_full_required_features()
-
-        for featname in self.all_required_features:
-            obj = FeatureObject.find(featname)
-            if obj is None:
-                self.iface.info(
-                    "Funcionalidad con nombre %s no encontrada (requerida por %s )"
-                    % (featname, self.formal_name())
-                )
-                continue
-
-            new_reqs = [
-                modulename
-                for modulename in obj._get_full_required_modules()
-                if modulename not in req and modulename not in myreq
-            ]
-            if self.type == "prj":
-                for n in new_reqs:
-                    if n in self.required_modules:
-                        continue
-                    self.iface.debug(
-                        "Proyecto %s, se agrega modulo %s solicitado por funcionalidad %s"
-                        % (self.formal_name(), n, featname)
-                    )
-
+        if modo == "yeboyebo":
             req += new_reqs
+            req += myreq
+        else:
+            self.all_required_features = self._get_full_required_features()
 
-        req += [modulename for modulename in myreq if modulename not in req]
-        new_list = []
-
-        for module_name in req:
-            if (
-                "/" not in module_name
-            ):  # esto filtra dependencias que son añadidas por código de módulo, para evitar que introduzca módulos con versiones incorrectas
-                module_obj = ModuleObject.find(module_name)
-                formal_name = module_obj.formal_name()
-                if formal_name in [
-                    formal_name for req_item in req if str(req_item).endswith(formal_name)
-                ]:
-                    if str(self.fullpath).endswith("fun_euromoda"):
-                        self.iface.debug(
-                            "Omitiendo módulo %s (ya existe %s : %s)"
-                            % (module_name, formal_name, module_obj.fullpath)
-                        )
+            for featname in self.all_required_features:
+                obj = FeatureObject.find(featname)
+                if obj is None:
+                    self.iface.info(
+                        "Funcionalidad con nombre %s no encontrada (requerida por %s )"
+                        % (featname, self.formal_name())
+                    )
                     continue
 
-            new_list.append(module_name)
+                new_reqs = [
+                    modulename
+                    for modulename in obj._get_full_required_modules()
+                    if modulename not in req and modulename not in myreq
+                ]
+                if self.type == "prj":
+                    for n in new_reqs:
+                        if n in self.required_modules:
+                            continue
+                        self.iface.debug(
+                            "Proyecto %s, se agrega modulo %s solicitado por funcionalidad %s"
+                            % (self.formal_name(), n, featname)
+                        )
 
-        self.all_required_modules = new_list
+                req += new_reqs
+
+            req += [modulename for modulename in myreq if modulename not in req]
+            new_list = []
+
+            for module_name in req:
+                if (
+                    "/" not in module_name
+                ):  # esto filtra dependencias que son añadidas por código de módulo, para evitar que introduzca módulos con versiones incorrectas
+                    module_obj = ModuleObject.find(module_name)
+                    formal_name = module_obj.formal_name()
+                    if formal_name in [
+                        formal_name for req_item in req if str(req_item).endswith(formal_name)
+                    ]:
+                        if str(self.fullpath).endswith("fun_euromoda"):
+                            self.iface.debug(
+                                "Omitiendo módulo %s (ya existe %s : %s)"
+                                % (module_name, formal_name, module_obj.fullpath)
+                            )
+                        continue
+
+                new_list.append(module_name)
+            req += new_list
+
+        self.all_required_modules = req
         return req
 
     def _get_full_required_features(self):
@@ -324,9 +342,6 @@ class FeatureObject(BaseObject):
     # * base: compila las dependencias del proyecto (todo lo que necesitamos
     #         para poder aplicar los parches luego)
     def get_base_actions(self):
-        import enebootools
-
-        enebootools.QS_EXTEND_MODE = self.qs_extend_mode
         dst_folder = os.path.join(self.fullpath, "build/base")
         binstr = etree.Element("BuildInstructions")
         binstr.set("feature", self.formal_name())
@@ -337,13 +352,11 @@ class FeatureObject(BaseObject):
             binstr.set("dstfolder", self.dstfolder)
         etree.SubElement(binstr, "Message", text="Copiando módulos . . .")
 
-        self.iface.debug("-- MODULES -----> %s" % self._get_full_required_modules())
+        lista_modulos = self._get_full_required_modules()
 
-        for modulename in (
-            self.required_modules
-            if self.qs_extend_mode == "yeboyebo"
-            else self._get_full_required_modules()
-        ):
+        self.iface.warn("-- MODULES1 -----> %s" % lista_modulos)
+
+        for modulename in lista_modulos:
             module = ModuleObject.find(modulename)
             if not module:
                 self.iface.warn("No encontramos el módulo %s" % modulename)
@@ -384,11 +397,11 @@ class FeatureObject(BaseObject):
         if self.dstfolder:
             binstr.set("dstfolder", self.dstfolder)
 
-        for modulename in (
-            self.required_modules
-            if self.qs_extend_mode == "yeboyebo"
-            else self._get_full_required_modules()
-        ):
+        lista_modulos = self._get_full_required_modules()
+
+        self.iface.warn("-- MODULES2 -----> %s" % lista_modulos)
+
+        for modulename in lista_modulos:
             module = ModuleObject.find(modulename)
             cpfolder = etree.SubElement(binstr, "CopyFolderAction")
             cpfolder.set("src", os.path.join(dep_folder, module.obj.relpath))
@@ -423,12 +436,7 @@ class FeatureObject(BaseObject):
         binstr.set("dstfolder", "build/src")
         if self.dstfolder:
             binstr.set("dstfolder", self.dstfolder)
-
-        for modulename in (
-            self.required_modules
-            if self.qs_extend_mode == "yeboyebo"
-            else self._get_full_required_modules()
-        ):
+        for modulename in self._get_full_required_modules():
             module = ModuleObject.find(modulename)
             cpfolder = etree.SubElement(binstr, "CopyFolderAction")
             cpfolder.set("src", os.path.join(dep_folder, module.obj.relpath))
@@ -671,10 +679,15 @@ class ObjectIndex(object, metaclass=Singleton):
         feature.set_patch_list([newname])
 
     def get_build_actions(self, target, func, dstfolder=None):
+        import enebootools
+
         feature = FeatureObject.find(func)
+
         if not feature:
             self.iface.error("Funcionalidad %s desconocida." % func)
             return None
+
+        enebootools.QS_EXTEND_MODE = feature.qs_extend_mode
 
         feature.set_dstfolder(dstfolder)
 
