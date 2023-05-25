@@ -184,7 +184,7 @@ def pyclass_reader(iface, file_name, file_lines):
             if heu_dtype is None:
                 heu_cnames = []
                 other_functions = []
-                for l in class_lines:
+                """ for l in class_lines:
                     m = re.search("def\s+(?P<cname>[a-zA-Z0-9]+)_\w+", l)
                     if m:
                         heu_cname = m.group("cname")
@@ -201,7 +201,7 @@ def pyclass_reader(iface, file_name, file_lines):
                         iface.error(">>>" + l)
 
                     if cname in heu_cnames:
-                        heu_cname = cname
+                        heu_cname = cname """
 
                 if heu_cname:
                     heu_dtype = "class_definition"
