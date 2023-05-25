@@ -739,21 +739,32 @@ def update_patch_file(iface, mod_file, patchdir, basedir, srcdir, finaldir):
     final_file = os.path.join(finaldir, *mod_file)
     src_file = os.path.join(srcdir, *mod_file)
 
+    file_name_upper = file_name.upper()
+
     ext = "XML"
-    if file_name.upper().endswith("QS"):
+    if file_name_upper.endswith("QS"):
         ext = "QS"
-    elif file_name.upper().endswith("PY"):
+    elif file_name_upper.endswith("PY"):
         ext = "PY"
+    elif file_name_upper.endswith("QRY"):
+        ext = "OTHER"
+
     patch_file = os.path.join(patchdir, file_name)
 
     iface.set_output_file(patch_file)
 
     if (
-        os.path.exists(final_file) and os.path.exists(src_file) and os.path.exists(base_file)
+        os.path.exists(final_file)
+        and os.path.exists(src_file)
+        and os.path.exists(base_file)
+        and ext != "OTHER"
     ):  # Si existe en base , final y src Update
         iface.info("Update file %s -> %s, patch: %s" % (src_file, base_file, patch_file))
+
         return iface.do_file_diff(ext, base_file, src_file)
-    elif not os.path.exists(base_file) and os.path.exists(
+    elif (
+        not os.path.exists(base_file) or (os.path.exists(base_file) and ext == "OTHER")
+    ) and os.path.exists(
         src_file
     ):  # Si no existe en base y si en src es nuevo!
         iface.info("New file %s -> %s, patch: %s" % (src_file, base_file, patch_file))
