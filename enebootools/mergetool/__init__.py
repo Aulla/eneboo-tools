@@ -516,7 +516,11 @@ class MergeToolInterface(EnebooToolsInterface):
                 if nom.startswith("test_"):
                     return flpatchtest.diff_test(self, base, final)
 
-                elif nom.endswith("_api.py"):
+                elif (
+                    nom.endswith(("_api.py", "_schema.py", "_model.py"))
+                    or nom.startswith("test_")
+                    and nom.endswith(".py")
+                ):
                     return flpatchapipy.diff_py(self, base, final)
                 elif "models" in base or "pruebasqs" in base:
                     return flpatchmodel.diff_model(self, base, final)
@@ -545,7 +549,11 @@ class MergeToolInterface(EnebooToolsInterface):
                     return flpatchpy.patch_py(self, base, patch)
                 elif nom.endswith("_def.py"):
                     return flpatchpy.patch_py(self, base, patch)
-                elif nom.endswith(("_api.py", "_schema.py", "_model.py")):
+                elif (
+                    nom.endswith(("_api.py", "_schema.py", "_model.py"))
+                    or nom.startswith("test_")
+                    and nom.endswith(".py")
+                ):
                     return flpatchapipy.patch_py(self, base, patch)
                 elif "models" in base or "pruebasqs" in base:
                     return flpatchmodel.patch_model(self, base, patch)

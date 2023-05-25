@@ -316,7 +316,11 @@ class FolderApplyPatch(object):
         old_style, self.iface.patch_py_style_name = self.iface.patch_py_style_name, style
         self.iface.set_output_file(dst + ".patched")
         if style in ["legacy"]:
-            if filename.endswith(("_api.py", "_schema.py", "_model.py")):
+            if (
+                filename.endswith(("_api.py", "_schema.py", "_model.py"))
+                or filename.startswith("test_")
+                and filename.endswith(".py")
+            ):
                 ret = flpatchapipy.patch_py(self.iface, dst, src)
             else:
                 ret = flpatchpy.patch_py(self.iface, dst, src)
