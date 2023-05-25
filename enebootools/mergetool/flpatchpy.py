@@ -1788,7 +1788,7 @@ def patch_py(iface, base, patch):
                     todo.append("fix-iface newclass")
                     new_iface_class = newclass
             else:
-                iface.warn(
+                iface.info(
                     "No existe declaración de iface en el código (aplicando patch para clase %s)"
                     % newclass
                 )
@@ -1888,7 +1888,7 @@ def patch_py(iface, base, patch):
                 todo.remove("fix-iface newclass")
 
         for task in todo:
-            iface.warn("La tarea %s no se ejecutó o se desconoce cómo hacerlo." % repr(task))
+            iface.info("La tarea %s no se ejecutó o se desconoce cómo hacerlo." % repr(task))
 
     line = ""
     for line in flbase:
