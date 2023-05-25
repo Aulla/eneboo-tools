@@ -130,8 +130,13 @@ class BaseObject(object):
                     for module_def in obj.required_modules:
                         obj2 = ModuleObject.find(module_def)
                         formal_name = obj2.formal_name()
-                        if formal_name not in self.required_modules:
-                            new_reqs.append(formal_name)
+                        if not [
+                            mod_name
+                            for mod_name in self.required_modules
+                            if mod_name.endswith(formal_name)
+                        ]:
+                            if not formal_name in new_reqs:
+                                new_reqs.append(formal_name)
             else:
                 new_reqs = [
                     modulename
@@ -218,9 +223,6 @@ class BaseObject(object):
                     "Funcionalidad con nombre %s no encontrada (requerida por %s )"
                     % (featname, self.formal_name())
                 )
-                if self.formal_name() == "fun_euromoda":
-                    print("No existe", featname)
-
                 continue
 
             new_reqs = []
@@ -349,7 +351,7 @@ class FeatureObject(BaseObject):
         etree.SubElement(binstr, "Message", text="Copiando módulos . . .")
 
         lista_modulos = self._get_full_required_modules()
-
+        self.iface.debug("Módulos usando en base: %s" % lista_modulos)
         for modulename in lista_modulos:
             module = ModuleObject.find(modulename)
             if not module:
