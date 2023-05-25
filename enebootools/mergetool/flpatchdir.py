@@ -317,7 +317,7 @@ class FolderApplyPatch(object):
         self.iface.set_output_file(dst + ".patched")
         if style in ["legacy"]:
             if (
-                filename.endswith(("_api.py", "_schema.py", "_model.py"))
+                filename.endswith(("_api.py", "_schema.py", "_model.py", "_class.py"))
                 or filename.startswith("test_")
                 and filename.endswith(".py")
             ):
