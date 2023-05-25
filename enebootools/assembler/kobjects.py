@@ -110,10 +110,10 @@ class BaseObject(object):
 
     def _get_full_required_modules(self):
         if self.all_required_modules:
-            # print("***", self, self.all_required_modules)
             return self.all_required_modules
         req = []
         myreq = []
+
         for modname in self.required_modules:
             obj = ModuleObject.find(modname)
             if obj is None:
@@ -122,7 +122,7 @@ class BaseObject(object):
                     % (modname, self.formal_name())
                 )
                 continue
-            # print("*", self, modname)
+
             new_reqs = [
                 modulename
                 for modulename in obj._get_full_required_modules()
@@ -169,14 +169,21 @@ class BaseObject(object):
 
         req += [modulename for modulename in myreq if modulename not in req]
         new_list = []
+
         for module_name in req:
-            if "/" not in module_name:
+            if (
+                "/" not in module_name
+            ):  # esto filtra dependencias que son añadidas por código de módulo, para evitar que introduzca módulos con versiones incorrectas
                 module_obj = ModuleObject.find(module_name)
                 formal_name = module_obj.formal_name()
-                if formal_name in req:
-                    self.iface.debug(
-                        "Omitiendo módulo %s (ya existe %s)" % (module_name, formal_name)
-                    )
+                if formal_name in [
+                    formal_name for req_item in req if str(req_item).endswith(formal_name)
+                ]:
+                    if str(self.fullpath).endswith("fun_euromoda"):
+                        self.iface.debug(
+                            "Omitiendo módulo %s (ya existe %s : %s)"
+                            % (module_name, formal_name, module_obj.fullpath)
+                        )
                     continue
 
             new_list.append(module_name)
@@ -189,6 +196,7 @@ class BaseObject(object):
             return self.all_required_features
         req = []
         myreq = []
+
         for featname in self.required_features:
             obj = FeatureObject.find(featname)
             if obj is None:
@@ -196,16 +204,17 @@ class BaseObject(object):
                     "Funcionalidad con nombre %s no encontrada (requerida por %s )"
                     % (featname, self.formal_name())
                 )
+                if self.formal_name() == "fun_euromoda":
+                    print("No existe", featname)
+
                 continue
-            new_reqs = [
-                featurename
-                for featurename in obj._get_full_required_features()
-                if featurename not in req
-            ]
+
+            new_reqs = []
+            for featurename in obj._get_full_required_features():
+                if featurename not in req and "24_%s" % featurename not in req:
+                    new_reqs.append(featurename)
             if self.type == "prj":
                 for n in new_reqs:
-                    if n in self.required_features:
-                        continue
                     self.iface.debug(
                         "Proyecto %s, se agrega funcionalidad %s solicitada por %s"
                         % (self.formal_name(), n, featname)
@@ -327,14 +336,24 @@ class FeatureObject(BaseObject):
         if self.dstfolder:
             binstr.set("dstfolder", self.dstfolder)
         etree.SubElement(binstr, "Message", text="Copiando módulos . . .")
-        # print("------->", self._get_full_required_modules())
-        for modulename in self._get_full_required_modules():
+
+        self.iface.debug("-- MODULES -----> %s" % self._get_full_required_modules())
+
+        for modulename in (
+            self.required_modules
+            if self.qs_extend_mode == "yeboyebo"
+            else self._get_full_required_modules()
+        ):
             module = ModuleObject.find(modulename)
+            if not module:
+                self.iface.warn("No encontramos el módulo %s" % modulename)
+
             cpfolder = etree.SubElement(binstr, "CopyFolderAction")
             cpfolder.set("src", module.fullpath)
             cpfolder.set("dst", module.obj.relpath)
             cpfolder.set("create_dst", "yes")
 
+        self.iface.debug("-- FEATURES -----> %s" % self._get_full_required_features())
         for featurename in self._get_full_required_features():
             feature = FeatureObject.find(featurename)
             patch_list = feature.get_patch_list()
@@ -365,7 +384,11 @@ class FeatureObject(BaseObject):
         if self.dstfolder:
             binstr.set("dstfolder", self.dstfolder)
 
-        for modulename in self._get_full_required_modules():
+        for modulename in (
+            self.required_modules
+            if self.qs_extend_mode == "yeboyebo"
+            else self._get_full_required_modules()
+        ):
             module = ModuleObject.find(modulename)
             cpfolder = etree.SubElement(binstr, "CopyFolderAction")
             cpfolder.set("src", os.path.join(dep_folder, module.obj.relpath))
@@ -401,7 +424,11 @@ class FeatureObject(BaseObject):
         if self.dstfolder:
             binstr.set("dstfolder", self.dstfolder)
 
-        for modulename in self.all_required_modules:
+        for modulename in (
+            self.required_modules
+            if self.qs_extend_mode == "yeboyebo"
+            else self._get_full_required_modules()
+        ):
             module = ModuleObject.find(modulename)
             cpfolder = etree.SubElement(binstr, "CopyFolderAction")
             cpfolder.set("src", os.path.join(dep_folder, module.obj.relpath))
@@ -645,7 +672,6 @@ class ObjectIndex(object, metaclass=Singleton):
 
     def get_build_actions(self, target, func, dstfolder=None):
         feature = FeatureObject.find(func)
-        # print("*******************", func, feature)
         if not feature:
             self.iface.error("Funcionalidad %s desconocida." % func)
             return None
