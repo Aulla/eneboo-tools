@@ -50,19 +50,16 @@ class BaseObject(object):
     @classmethod
     def by_name(self, name):
         result = self._by_name.get((self.__name__, str(name)), None)
-        # print("1 ****", result)
         return result
 
     @classmethod
     def by_formal_name(self, name):
         result = self._by_formal_name.get((self.__name__, str(name)), None)
-        # print("1 ***", result)
         return result
 
     @classmethod
     def by_relpath(self, relpath):
         result = self._by_relpath.get((self.__name__, str(relpath)), None)
-        # print("1 **", result)
         return result
 
     @classmethod
@@ -81,7 +78,6 @@ class BaseObject(object):
                 for key, value in self._by_abspath.items()
                 if key[0] == self.__name__ and value.fullpath.endswith("/%s" % relpath)
             ]
-            # print("1 *", result, getattr(result, "fullpath", None), relpath)
         return result[0] if result else None
 
     @classmethod
@@ -354,8 +350,6 @@ class FeatureObject(BaseObject):
 
         lista_modulos = self._get_full_required_modules()
 
-        self.iface.warn("-- MODULES1 -----> %s" % lista_modulos)
-
         for modulename in lista_modulos:
             module = ModuleObject.find(modulename)
             if not module:
@@ -366,7 +360,6 @@ class FeatureObject(BaseObject):
             cpfolder.set("dst", module.obj.relpath)
             cpfolder.set("create_dst", "yes")
 
-        self.iface.debug("-- FEATURES -----> %s" % self._get_full_required_features())
         for featurename in self._get_full_required_features():
             feature = FeatureObject.find(featurename)
             patch_list = feature.get_patch_list()
@@ -398,8 +391,6 @@ class FeatureObject(BaseObject):
             binstr.set("dstfolder", self.dstfolder)
 
         lista_modulos = self._get_full_required_modules()
-
-        self.iface.warn("-- MODULES2 -----> %s" % lista_modulos)
 
         for modulename in lista_modulos:
             module = ModuleObject.find(modulename)
