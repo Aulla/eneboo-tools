@@ -746,7 +746,7 @@ def update_patch_file(iface, mod_file, patchdir, basedir, srcdir, finaldir):
         ext = "QS"
     elif file_name_upper.endswith("PY"):
         ext = "PY"
-    elif file_name_upper.endswith("QRY"):
+    elif file_name_upper.endswith(("QRY", "KUT")):
         ext = "OTHER"
 
     patch_file = os.path.join(patchdir, file_name)
