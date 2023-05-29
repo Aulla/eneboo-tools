@@ -8,6 +8,7 @@ import difflib
 import time
 import hashlib
 import fnmatch
+import datetime
 
 from enebootools.mergetool import flpatchqs, flpatchlxml, flpatchpy, flpatchapipy
 
@@ -719,7 +720,7 @@ def update_patch_folder(iface, finaldir, srcdir, patchdir, path):
             action.tag = "{http://www.abanqg2.com/es/directori/abanq-ensambla/?flpatch}addFile"
         # if str(action.tag).endswith("deleteFile"):
         #    fpatch.root.remove(action)
-
+        print("**", action.get("name"), action.tag)
         mod_files.append([action.get("path"), action.get("name")])
 
     iface.info("Actualizando ficheros entre %s y %s" % (basedir, srcdir))
@@ -839,6 +840,8 @@ def update_xml_patch(iface, fpatch, basedir):
         current_root.append(action)
 
     if not found_changes:
+        ts = datetime.datetime.now().timestamp()
+        os.utime(patch_xml_file, (ts, ts))
         iface.info("No hay cambios!")
         return
     iface.info("Cambios detectados!")
