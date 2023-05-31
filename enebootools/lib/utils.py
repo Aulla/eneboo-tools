@@ -103,7 +103,11 @@ def check_folder_clean(iface, feature, folder):
     diferencias = calcula_diferencias_folders(final_path, src_path)
 
     if diferencias:
-        print("Cambios:")
+        print(
+            "\n** ATENCIÓN **\n\n\nEn la carpeta %s de la extensión %s existen cambios que no existen"
+            % (folder, feature)
+            + " en la carpeta final.Si usó previamente el comando save-fullpatch esto puede ser normal.\n\nCambios:"
+        )
         print(
             "\n".join(
                 [
@@ -119,8 +123,7 @@ def check_folder_clean(iface, feature, folder):
 
         while True:
             print(
-                "\nEn la carpeta %s de la extensión %s existen cambios sin guardar. ¿Desea continuar (s/n)?"
-                % (folder, feature),
+                "\n¿Desea continuar regenerando la carpeta(s/n)?",
                 end="",
             )
             result = input().lower()

@@ -515,8 +515,11 @@ class FolderCreatePatch(object):
                         ret = self.compute_patch_script(action)
                     elif actionname == "patchxml":
                         ret = self.compute_patch_xml(action)
+                    elif actionname == "patchpy":
+                        ret = self.compute_patch_py(action)
                     # TODO: actionname == "patchphp"
                     else:
+                        print("*", actionname)
                         self.iface.warn(
                             "** Se ha ignorado acción desconocida %s **" % repr(actionname)
                         )
@@ -605,6 +608,54 @@ class FolderCreatePatch(object):
             return -1
         if not ret:
             self.iface.warn("Pudo haber algún problema generando el parche QS para %s" % filename)
+
+    def compute_patch_py(self, patchpy):
+        patchpy.set("style", self.iface.patch_py_style_name)
+        path = patchpy.get("path")
+        filename = patchpy.get("name")
+
+        pathname = os.path.join(path, filename)
+        dst = os.path.join(self.patchdir, filename)
+        base = os.path.join(self.basedir, pathname)
+        final = os.path.join(self.finaldir, pathname)
+
+        self.iface.info("Generando parche PY %s . . ." % filename)
+        old_output = self.iface.output
+        old_verbosity = self.iface.verbosity
+        self.iface.verbosity -= 2
+        if self.iface.verbosity < 0:
+            self.iface.verbosity = min([0, self.iface.verbosity])
+        self.iface.set_output_file(dst)
+        if self.iface.patch_py_style_name in ["legacy"]:
+            if (
+                filename.endswith(("_api.py", "_schema.py", "_model.py", "_class.py"))
+                or filename.startswith("test_")
+                and filename.endswith(".py")
+            ):
+                ret = flpatchapipy.diff_py(self.iface, base, final)
+            else:
+                ret = flpatchpy.diff_py(self.iface, base, final)
+
+        elif self.iface.patch_py_style_name in ["qsdir"]:
+            if (
+                filename.endswith(("_api.py", "_schema.py", "_model.py", "_class.py"))
+                or filename.startswith("test_")
+                and filename.endswith(".py")
+            ):
+                ret = flpatchapipy.diff_py_dir(self.iface, base, final)
+            else:
+                ret = flpatchpy.diff_py_dir(self.iface, base, final)
+        else:
+            raise ValueError(
+                "patch_py_style_name no reconocido: %s" % self.iface.patch_py_style_name
+            )
+        self.iface.output = old_output
+        self.iface.verbosity = old_verbosity
+        if ret == -1:
+            os.unlink(dst)
+            return -1
+        if not ret:
+            self.iface.warn("Pudo haber algún problema generando el parche PY para %s" % filename)
 
     def compute_patch_xml(self, patchxml):
         patchxml.set("style", self.iface.patch_xml_style_name)
