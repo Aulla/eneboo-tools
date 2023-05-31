@@ -11,7 +11,7 @@ from lxml import etree
 
 from enebootools import CONF_DIR
 from enebootools.assembler.config import cfg
-from enebootools.lib.utils import one, find_files, get_max_mtime
+from enebootools.lib.utils import one, find_files, get_max_mtime, check_folder_clean
 import enebootools.lib.peewee as peewee
 from enebootools.mergetool import projectbuilder
 from enebootools.mergetool import MergeToolInterface
@@ -181,6 +181,10 @@ def do_build(iface, target, feat, rebuild=True, dstfolder=None):
     dstfile = os.path.join(buildpath, "%s.build.xml" % target)
     build_instructions.getroottree().write(dstfile, pretty_print=True)
     depends = build_instructions.get("depends", "").split(" ")
+    if target == "src" and rebuild:
+        if not check_folder_clean(iface, feat, target):
+            sys.exit(1)
+
     if depends:
         for dep in depends:
             dep = dep.strip()

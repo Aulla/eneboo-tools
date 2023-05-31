@@ -720,7 +720,7 @@ def update_patch_folder(iface, finaldir, srcdir, patchdir, path):
             action.tag = "{http://www.abanqg2.com/es/directori/abanq-ensambla/?flpatch}addFile"
         # if str(action.tag).endswith("deleteFile"):
         #    fpatch.root.remove(action)
-        print("**", action.get("name"), action.tag)
+
         mod_files.append([action.get("path"), action.get("name")])
 
     iface.info("Actualizando ficheros entre %s y %s" % (basedir, srcdir))
