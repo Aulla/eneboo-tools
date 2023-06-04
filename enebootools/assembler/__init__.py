@@ -36,9 +36,10 @@ class AssemblerInterface(EnebooToolsInterface):
 
         self.build_action = self.parser.declare_action(
             name="build",
-            args=["feat", "target"],
+            args=["feat", "target", "only_dep"],
+            min_argcount=2,
             options=[],
-            description="Construye el objetivo $target de la funcionalidad $feat",
+            description="Construye el objetivo $target de la funcionalidad $feat. Si se especifica $only_dep solo actualiza en el build esa depdencia.",
             call_function=self.do_build,
         )
         self.build_action.set_help_arg(
@@ -146,9 +147,9 @@ class AssemblerInterface(EnebooToolsInterface):
         except Exception as e:
             self.exception(type(e).__name__, str(e))
 
-    def do_build(self, target, feat):
+    def do_build(self, target, feat, only_dep=None):
         try:
-            return asmdb.do_build(self, target, feat)
+            return asmdb.do_build(self, target, feat, only_dep=only_dep)
         except Exception as e:
             self.exception(type(e).__name__, str(e))
 

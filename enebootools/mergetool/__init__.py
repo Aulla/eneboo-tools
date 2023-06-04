@@ -4,6 +4,8 @@ from enebootools import EnebooToolsInterface
 import traceback
 
 
+ONLY_FILES = []
+
 from enebootools.mergetool import (
     flpatchqs,
     flpatchpy,

@@ -46,6 +46,8 @@ class BuildInstructions(object):
         self.iface.msg(text)
 
     def copyFolder(self, src, dst, create_dst=False):
+        from enebootools import mergetool
+
         if create_dst == "yes":
             create_dst = True
         if create_dst == "no":
@@ -65,7 +67,14 @@ class BuildInstructions(object):
         if os.path.exists(dst):
             self.iface.error("La carpeta %s ya existe!" % dst)
             return False
-        shutil.copytree(src, dst)
+
+        only_files = mergetool.ONLY_FILES
+        if not only_files:
+            shutil.copytree(src, dst)
+        else:
+            # solo ficheros existentes en el módulo..
+            # fixear no borrar base.
+            print("AQUÍ ", src)
 
     def applyPatch(self, src):
         self.iface.info("Aplicando parche (...)%s . . ." % (src[-64:]))

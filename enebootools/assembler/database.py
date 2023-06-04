@@ -163,7 +163,10 @@ def is_target_built(iface, target, feat):
     return False  # Asumir que nunca una dependencia está cumplida
 
 
-def do_build(iface, target, feat, rebuild=True, dstfolder=None):
+def do_build(iface, target, feat, rebuild=True, dstfolder=None, only_dep=None):
+    from enebootools import mergetool
+
+    print("do_build", target, feat, rebuild)
     db = init_database()
     oi = ObjectIndex(iface)
     oi.analyze_objects()
@@ -182,7 +185,7 @@ def do_build(iface, target, feat, rebuild=True, dstfolder=None):
     build_instructions.getroottree().write(dstfile, pretty_print=True)
     depends = build_instructions.get("depends", "").split(" ")
     if target == "src" and rebuild:
-        if not check_folder_clean(iface, feat, target):
+        if not check_folder_clean(iface, feat, target, only_dep):
             sys.exit(1)
 
     if depends:
@@ -194,13 +197,16 @@ def do_build(iface, target, feat, rebuild=True, dstfolder=None):
                 # Si tiene una dependencia, y no está cumplida, recompilarla:
                 do_build(iface, dep, feat, rebuild=False)
 
+    rebuild = mergetool.ONLY_FILES and target == "base"
+
     mtool_iface = MergeToolInterface()
     mtool_iface.verbosity = iface.verbosity + cfg.mergetool.verbosity_delta
     mtool_iface.patch_qs_rewrite = cfg.mergetool.patch_qs_rewrite
     mtool_iface.patch_xml_style_name = cfg.mergetool.patch_xml_style_name
     mtool_iface.diff_xml_search_move = cfg.mergetool.diff_xml_search_move
-
     projectbuilder.build_xml(mtool_iface, build_instructions, rebuild)
+    mergetool.ONLY_FILES = []
+    print("fin_do_build", target, feat, rebuild)
 
 
 def uinput(question, possible_values=None):

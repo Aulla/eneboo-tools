@@ -276,7 +276,7 @@ class FolderApplyPatch(object):
         if not os.path.exists(dst):
             self.iface.debug("Ignorando parche XML para %s (el fichero no existe)" % filename)
             return
-        self.iface.info("Aplicando parche XML %s . . ." % filename)
+        self.iface.info("Aplicando parche XML %s . . . %s" % (filename, folder))
         old_output = self.iface.output
         old_verbosity = self.iface.verbosity
         self.iface.verbosity -= 2

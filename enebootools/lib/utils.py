@@ -1,5 +1,6 @@
 # encoding: UTF-8
 import os, fnmatch, shutil
+from lxml import etree
 
 
 def one(iterable, default=None):
@@ -90,8 +91,9 @@ def get_max_mtime(path, filename):
     return max_mtime
 
 
-def check_folder_clean(iface, feature, folder):
+def check_folder_clean(iface, feature, folder, only_deps):
     from enebootools.assembler import kobjects
+    from enebootools import mergetool
 
     feature_object = kobjects.FeatureObject.find(feature)
 
@@ -133,16 +135,71 @@ def check_folder_clean(iface, feature, folder):
                 break
             print("Respuesta invalida.")
 
+    lista_ficheros = []
+
+    if only_deps:
+        lista_deps = only_deps.split(",")
+
+        encoding = "iso-8859-15"
+        parser = etree.XMLParser(
+            ns_clean=False,
+            encoding=encoding,
+            # .. recover funciona y parsea cuasi cualquier cosa.
+            recover=True,
+            remove_blank_text=True,
+        )
+        # sacamos ficheros afectados ...
+        for dep_name in lista_deps:
+            iface.warn("Recopilando ficheros %s" % (dep_name))
+            dep_object = kobjects.FeatureObject.find(dep_name)
+            patch_list = dep_object.get_patch_list()
+            for patchdir in patch_list:
+                patch_file = os.path.join(
+                    dep_object.fullpath, "patches", patchdir, "%s.xml" % dep_name
+                )
+
+                if os.path.exists(patch_file):
+                    tree = etree.parse(patch_file, parser)
+                    root = tree.getroot()
+                    for linea in root:
+                        fichero_path = os.path.join(linea.get("path"), linea.get("name"))
+                        if fichero_path not in lista_ficheros:
+                            lista_ficheros.append(fichero_path)
+                else:
+                    iface.info(
+                        "El parche %s de la extensión %s está vacío. Omitiendo"
+                        % (patch_list, dep_name)
+                    )
+
+            # borramos ficheros afectados en base ...
+        for fichero in lista_ficheros:
+            file_base_path = os.path.join(feature_object.fullpath, "build", "base", fichero)
+            if os.path.exists(file_base_path):
+                iface.info("Borrando fichero %s de base" % (fichero))
+                os.remove(file_base_path)
+            else:
+                iface.info(
+                    "El fichero %s no se encuentra en base para ser borrado. Omitiendo"
+                    % (file_base_path)
+                )
+        mergetool.ONLY_FILES = lista_ficheros
+
+        # pasamos aplicando extensiones , pero solo ficheros afectados
+
     if folder == "src":
+        # borramos final y src
         if os.path.exists(src_path):
-            iface.info("Borrando %s" % src_path)
+            iface.warn("Borrando %s" % src_path)
             shutil.rmtree(src_path)
-        if os.path.exists(base_path):
-            iface.info("Borrando %s" % base_path)
-            shutil.rmtree(base_path)
+
         if os.path.exists(final_path):
-            iface.info("Borrando %s" % final_path)
+            iface.warn("Borrando %s" % final_path)
             shutil.rmtree(final_path)
+
+        # borramos abse si no hay especificada una dependencia específica.
+        if not lista_ficheros and os.path.exists(base_path):
+            iface.warn("Borrando %s" % base_path)
+            shutil.rmtree(base_path)
 
     return True
 
