@@ -85,7 +85,7 @@ class BuildInstructions(object):
         flpatchdir.diff_folder(self.iface, src, dst, self.dstpath, inplace=True)
 
     def updatePatch(self, src, dst):
-        self.iface.info("Actualizando parche (...)%s - (...)%s . . ." % (src[-48:], dst[-48:]))
+        self.iface.info("Actualizando parche en %s" % (src))
         flpatchdir.update_patch_folder(self.iface, src, dst, self.dstpath, self.path)
 
 

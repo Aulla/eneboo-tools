@@ -162,7 +162,7 @@ class AssemblerInterface(EnebooToolsInterface):
     def do_save_recent(self, feat):
         try:
             asmdb.do_save_recent(self, feat)
-            return self.do_build("final", feat)
+            # return self.do_build("final", feat)
 
         except Exception as e:
             self.exception(type(e).__name__, str(e))

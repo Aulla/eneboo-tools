@@ -811,22 +811,21 @@ def update_patch_file(iface, mod_file, patchdir, basedir, srcdir, finaldir):
         and os.path.exists(base_file)
         and ext != "OTHER"
     ):  # Si existe en base , final y src Update
-        iface.info("Update file %s -> %s, patch: %s" % (src_file, base_file, patch_file))
-
-        return iface.do_file_diff(ext, base_file, src_file)
+        iface.warn("Update file %s -> %s, patch: %s" % (src_file, base_file, patch_file))
+        shutil.copyfile(src_file, final_file)
     elif (
         not os.path.exists(base_file) or (os.path.exists(base_file) and ext == "OTHER")
     ) and os.path.exists(
         src_file
     ):  # Si no existe en base y si en src es nuevo!
-        iface.info("New file %s -> %s, patch: %s" % (src_file, base_file, patch_file))
+        iface.warn("New file %s -> %s, patch: %s" % (src_file, base_file, patch_file))
         shutil.copyfile(src_file, final_file)
         with open(src_file, "rb") as file_:
             iface.output.write(file_.read())
     elif os.path.exists(base_file) and not os.path.exists(
         src_file
     ):  # Si no existe en base y si en src, es delete!
-        iface.info("Delete file %s -> %s, patch: %s" % (src_file, final_file, patch_file))
+        iface.warn("Delete file %s -> %s, patch: %s" % (src_file, final_file, patch_file))
         os.remove(final_file)
 
     return True
@@ -869,7 +868,6 @@ def update_xml_patch(iface, fpatch, basedir):
             current_name = current_action.get("name")
             if current_path == new_path and current_name == new_name:
                 current_root.remove(current_action)
-                iface.info("Borrando %s %s" % (current_path, current_name))
                 del current_action
                 found = True
                 break
