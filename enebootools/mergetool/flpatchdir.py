@@ -774,11 +774,11 @@ def update_patch_folder(iface, finaldir, srcdir, patchdir, path):
 
         mod_files.append([action.get("path"), action.get("name")])
 
-    iface.info("Actualizando ficheros entre %s y %s" % (basedir, srcdir))
+    iface.info("Actualizando ficheros entre %s y %s" % (srcdir, finaldir))
     for mod_file in mod_files:
         update_patch_file(iface, mod_file, patchdir, basedir, srcdir, finaldir)
 
-    iface.info("Changes : %s" % mod_files)
+    iface.debug("Changes : %s" % mod_files)
 
     update_xml_patch(iface, fpatch, basedir)
 
@@ -811,21 +811,23 @@ def update_patch_file(iface, mod_file, patchdir, basedir, srcdir, finaldir):
         and os.path.exists(base_file)
         and ext != "OTHER"
     ):  # Si existe en base , final y src Update
-        iface.warn("Update file %s -> %s, patch: %s" % (src_file, base_file, patch_file))
+        iface.info("Updated file found -> %s." % (src_file,))
+        iface.do_file_diff(ext, base_file, src_file)
         shutil.copyfile(src_file, final_file)
+
     elif (
         not os.path.exists(base_file) or (os.path.exists(base_file) and ext == "OTHER")
     ) and os.path.exists(
         src_file
     ):  # Si no existe en base y si en src es nuevo!
-        iface.warn("New file %s -> %s, patch: %s" % (src_file, base_file, patch_file))
-        shutil.copyfile(src_file, final_file)
+        iface.info("New file found -> %s." % (src_file))
         with open(src_file, "rb") as file_:
             iface.output.write(file_.read())
+        shutil.copyfile(src_file, final_file)
     elif os.path.exists(base_file) and not os.path.exists(
         src_file
     ):  # Si no existe en base y si en src, es delete!
-        iface.warn("Delete file %s -> %s, patch: %s" % (src_file, final_file, patch_file))
+        iface.info("Deleted file found -> %s." % (src_file))
         os.remove(final_file)
 
     return True
@@ -833,7 +835,7 @@ def update_patch_file(iface, mod_file, patchdir, basedir, srcdir, finaldir):
 
 def update_xml_patch(iface, fpatch, basedir):
     patch_xml_file = os.path.join(fpatch.patchdir, fpatch.patch_name + ".xml")
-    iface.warn("Calculando cambios en %s" % patch_xml_file)
+    # iface.info("Actualizando cambios en %s" % patch_xml_file)
     try:
         encoding = "iso-8859-15"
         parser = etree.XMLParser(
@@ -893,8 +895,9 @@ def update_xml_patch(iface, fpatch, basedir):
         os.utime(patch_xml_file, (ts, ts))
         iface.info("No hay cambios!")
         return
-    iface.info("Cambios detectados!")
-    iface.info("Guardando cambios en %s" % patch_xml_file)
+    # iface.info("Cambios detectados!")
+    else:
+        iface.info("Guardando cambios en %s" % patch_xml_file)
 
     file_ = open(patch_xml_file, "w", encoding="UTF-8")
     result = _xf(current_et)
@@ -905,6 +908,7 @@ def update_xml_patch(iface, fpatch, basedir):
     result = result.replace("\n  <flpatch", "\n    <flpatch")
     result = result.replace('">', '" >')
     result = result.replace('"/>', '" />')
+    result = result.replace("  path=", " path=")
     file_.write(result)
     file_.close()
 
