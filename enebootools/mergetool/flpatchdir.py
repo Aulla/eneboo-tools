@@ -97,6 +97,10 @@ class FolderApplyPatch(object):
             iface.error("No se pudo leer el parche: " + str(e))
 
     def patch_folder(self, folder):
+        from enebootools import mergetool
+
+        only_files = [name for folder, name in mergetool.ONLY_FILES]
+
         if self.root is None:
             return
         for action in self.root:
@@ -108,6 +112,13 @@ class FolderApplyPatch(object):
             actionname = actionname.lower()
             if actionname.startswith("flpatch:"):
                 actionname = actionname.split(":")[1]
+
+            if only_files:
+                file_name = action.get("name")
+                if file_name not in only_files:
+                    continue
+
+                self.iface.info("** aplicando fichero %s **" % file_name)
 
             tbegin = time.time()
             try:

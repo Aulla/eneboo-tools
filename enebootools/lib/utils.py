@@ -162,9 +162,9 @@ def check_folder_clean(iface, feature, folder, only_deps):
                     tree = etree.parse(patch_file, parser)
                     root = tree.getroot()
                     for linea in root:
-                        fichero_path = os.path.join(linea.get("path"), linea.get("name"))
-                        if fichero_path not in lista_ficheros:
-                            lista_ficheros.append(fichero_path)
+                        fichero = (linea.get("path"), linea.get("name"))
+                        if fichero not in lista_ficheros:
+                            lista_ficheros.append(fichero)
                 else:
                     iface.info(
                         "El parche %s de la extensión %s está vacío. Omitiendo"
@@ -173,32 +173,35 @@ def check_folder_clean(iface, feature, folder, only_deps):
 
             # borramos ficheros afectados en base ...
         for fichero in lista_ficheros:
-            file_base_path = os.path.join(feature_object.fullpath, "build", "base", fichero)
+            file_base_path = os.path.join(
+                feature_object.fullpath, "build", "base", fichero[0], fichero[1]
+            )
+            iface.debug("Buscando fichero %s" % file_base_path)
             if os.path.exists(file_base_path):
-                iface.info("Borrando fichero %s de base" % (fichero))
+                iface.debug("Borrando fichero %s de base" % (fichero[1]))
                 os.remove(file_base_path)
             else:
-                iface.info(
+                iface.debug(
                     "El fichero %s no se encuentra en base para ser borrado. Omitiendo"
                     % (file_base_path)
                 )
-        mergetool.ONLY_FILES = lista_ficheros
 
+        mergetool.ONLY_FILES = lista_ficheros
         # pasamos aplicando extensiones , pero solo ficheros afectados
 
     if folder == "src":
         # borramos final y src
         if os.path.exists(src_path):
-            iface.warn("Borrando %s" % src_path)
+            iface.info("Borrando %s" % src_path)
             shutil.rmtree(src_path)
 
         if os.path.exists(final_path):
-            iface.warn("Borrando %s" % final_path)
+            iface.info("Borrando %s" % final_path)
             shutil.rmtree(final_path)
 
         # borramos abse si no hay especificada una dependencia específica.
         if not lista_ficheros and os.path.exists(base_path):
-            iface.warn("Borrando %s" % base_path)
+            iface.info("Borrando %s" % base_path)
             shutil.rmtree(base_path)
 
     return True

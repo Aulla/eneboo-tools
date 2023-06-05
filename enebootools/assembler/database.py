@@ -166,7 +166,7 @@ def is_target_built(iface, target, feat):
 def do_build(iface, target, feat, rebuild=True, dstfolder=None, only_dep=None):
     from enebootools import mergetool
 
-    print("do_build", target, feat, rebuild)
+    # print("do_build", target, feat, rebuild)
     db = init_database()
     oi = ObjectIndex(iface)
     oi.analyze_objects()
@@ -197,7 +197,8 @@ def do_build(iface, target, feat, rebuild=True, dstfolder=None, only_dep=None):
                 # Si tiene una dependencia, y no está cumplida, recompilarla:
                 do_build(iface, dep, feat, rebuild=False)
 
-    rebuild = mergetool.ONLY_FILES and target == "base"
+    if mergetool.ONLY_FILES and target == "base":
+        rebuild = False
 
     mtool_iface = MergeToolInterface()
     mtool_iface.verbosity = iface.verbosity + cfg.mergetool.verbosity_delta
@@ -206,7 +207,6 @@ def do_build(iface, target, feat, rebuild=True, dstfolder=None, only_dep=None):
     mtool_iface.diff_xml_search_move = cfg.mergetool.diff_xml_search_move
     projectbuilder.build_xml(mtool_iface, build_instructions, rebuild)
     mergetool.ONLY_FILES = []
-    print("fin_do_build", target, feat, rebuild)
 
 
 def uinput(question, possible_values=None):
