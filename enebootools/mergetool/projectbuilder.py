@@ -76,7 +76,9 @@ class BuildInstructions(object):
         if not only_files:
             shutil.copytree(src, dst)
         else:
-            self.update_files_only(only_files, src, dst)
+            if not os.path.exists(dst):
+                raise Exception("No se puede hacer build parcial. La carpeta %s no existe" % dst)
+            self.update_files_only(only_files, src, self.dstpath)
 
     def update_files_only(self, files_only, src, dst):
         files_dir = {}
@@ -92,7 +94,7 @@ class BuildInstructions(object):
         for file_found in files_found:
             file_name = file_found[0]
             src_path = file_found[1]
-            dst_path = os.path.join(dst, file_name)
+            dst_path = os.path.join(dst, files_dir[file_name], file_name)
             self.iface.info("Update (...)%s - (...)%s . . ." % (src_path[-64:], dst_path[-64:]))
             shutil.copyfile(src_path, dst_path)
 
