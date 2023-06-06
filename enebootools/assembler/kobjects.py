@@ -155,7 +155,6 @@ class BaseObject(object):
             req += new_reqs
             myreq.append(modname)
         if modo == "yeboyebo":
-            req += new_reqs
             req += myreq
         else:
             self.all_required_features = self._get_full_required_features()
@@ -197,16 +196,10 @@ class BaseObject(object):
                     if formal_name in [
                         formal_name for req_item in req if str(req_item).endswith(formal_name)
                     ]:
-                        if str(self.fullpath).endswith("fun_euromoda"):
-                            self.iface.debug(
-                                "Omitiendo módulo %s (ya existe %s : %s)"
-                                % (module_name, formal_name, module_obj.fullpath)
-                            )
                         continue
 
                 new_list.append(module_name)
             req += new_list
-
         self.all_required_modules = req
         return req
 

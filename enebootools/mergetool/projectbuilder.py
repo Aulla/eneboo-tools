@@ -1,5 +1,5 @@
 # encoding: UTF-8
-import os
+import os, sys
 from lxml import etree
 from enebootools.lib.utils import one, find_files, get_max_mtime, read_file_list
 from enebootools.mergetool import flpatchdir
@@ -77,7 +77,8 @@ class BuildInstructions(object):
             shutil.copytree(src, dst)
         else:
             if not os.path.exists(dst):
-                raise Exception("No se puede hacer build parcial. La carpeta %s no existe" % dst)
+                self.iface.warn("No se puede hacer build parcial. La carpeta %s no existe" % dst)
+                sys.exit(1)
             self.update_files_only(only_files, src, self.dstpath)
 
     def update_files_only(self, files_only, src, dst):

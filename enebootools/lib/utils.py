@@ -1,5 +1,5 @@
 # encoding: UTF-8
-import os, fnmatch, shutil
+import os, fnmatch, shutil, sys
 from lxml import etree
 
 
@@ -150,8 +150,18 @@ def check_folder_clean(iface, feature, folder, only_deps):
         )
         # sacamos ficheros afectados ...
         for dep_name in lista_deps:
-            iface.warn("Recopilando ficheros %s" % (dep_name))
             dep_object = kobjects.FeatureObject.find(dep_name)
+            if not dep_object:
+                iface.warn("No se encuentra la funcionalidad %s" % dep_name)
+                sys.exit(1)
+
+            if dep_name not in feature_object.all_required_features:
+                iface.warn(
+                    "La funcionalidad %s no es usada en el build de %s" % (dep_name, feature)
+                )
+                sys.exit(1)
+
+            iface.info("Recopilando ficheros %s para filtrarlos" % (dep_name))
             patch_list = dep_object.get_patch_list()
             for patchdir in patch_list:
                 patch_file = os.path.join(
