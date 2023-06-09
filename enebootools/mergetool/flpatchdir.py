@@ -777,7 +777,7 @@ def update_patch_folder(iface, finaldir, srcdir, patchdir, path):
             continue
 
         if str(action.tag).lower().endswith(
-            ("patchscript", "patchxml", "patchpy")
+            ("patchscript", "patchxml", "patchpy", "replacefile")
         ) and not os.path.exists(os.path.join(basedir, action.get("path"), action.get("name"))):
             action.tag = "{http://www.abanqg2.com/es/directori/abanq-ensambla/?flpatch}addFile"
         # if str(action.tag).endswith("deleteFile"):
