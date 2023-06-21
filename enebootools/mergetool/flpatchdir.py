@@ -9,7 +9,7 @@ import time
 import hashlib
 import fnmatch
 import datetime
-
+from enebootools.tools import ar2kut
 from enebootools.mergetool import flpatchqs, flpatchlxml, flpatchpy, flpatchapipy
 
 
@@ -786,12 +786,18 @@ def update_patch_folder(iface, finaldir, srcdir, patchdir, path):
         mod_files.append([action.get("path"), action.get("name")])
 
     iface.info("Actualizando ficheros entre %s y %s" % (srcdir, finaldir))
+
     for mod_file in mod_files:
         update_patch_file(iface, mod_file, patchdir, basedir, srcdir, finaldir)
-
     iface.debug("Changes : %s" % mod_files)
 
     update_xml_patch(iface, fpatch, basedir)
+
+    ar2_kut = ar2kut.Ar2Kut(iface)
+    for mod_file in mod_files:
+        if str(mod_file[1]).endswith(".ar"):
+            fichero_path = os.path.join(finaldir, *mod_file)
+            ar2_kut.ar2kutfichero(fichero_path)
 
     iface.info("Listo!")
 
@@ -809,7 +815,7 @@ def update_patch_file(iface, mod_file, patchdir, basedir, srcdir, finaldir):
         ext = "QS"
     elif file_name_upper.endswith("PY"):
         ext = "PY"
-    elif file_name_upper.endswith(("QRY", "KUT")):
+    elif file_name_upper.endswith(("QRY", "KUT", "AR")):
         ext = "OTHER"
 
     patch_file = os.path.join(patchdir, file_name)

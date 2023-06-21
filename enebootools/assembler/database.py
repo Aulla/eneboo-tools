@@ -12,6 +12,7 @@ from lxml import etree
 from enebootools import CONF_DIR
 from enebootools.assembler.config import cfg
 from enebootools.lib.utils import one, find_files, get_max_mtime, check_folder_clean
+from enebootools.tools import ar2kut
 import enebootools.lib.peewee as peewee
 from enebootools.mergetool import projectbuilder
 from enebootools.mergetool import MergeToolInterface
@@ -21,6 +22,8 @@ from .databasemodels import KnownObjects
 
 from .mypeewee import transactional
 from .kobjects import ObjectIndex, FeatureObject
+
+DISABLE_AR2KUT = False
 
 
 class Database(object):
@@ -164,7 +167,11 @@ def is_target_built(iface, target, feat):
 
 
 def do_build(iface, target, feat, rebuild=True, dstfolder=None, only_dep=None):
+    global DISABLE_AR2KUT
     from enebootools import mergetool
+
+    if target == "fullpatch":
+        DISABLE_AR2KUT = True
 
     # print("do_build", target, feat, rebuild)
     db = init_database()
@@ -207,6 +214,12 @@ def do_build(iface, target, feat, rebuild=True, dstfolder=None, only_dep=None):
     mtool_iface.diff_xml_search_move = cfg.mergetool.diff_xml_search_move
     projectbuilder.build_xml(mtool_iface, build_instructions, rebuild)
     mergetool.ONLY_FILES = []
+    if target in ("final", "base") and not DISABLE_AR2KUT:
+        final_path = os.path.join(buildpath, target)
+        iface.warn("Lanzando ar2kut sobre %s" % final_path)
+        ar2_kut = ar2kut.Ar2Kut(iface)
+
+        ar2_kut.ar2kutCarpeta(final_path)
 
 
 def uinput(question, possible_values=None):
