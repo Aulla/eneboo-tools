@@ -2,6 +2,8 @@ from typing import Any, List
 import os, sys
 import xml.etree.ElementTree as ET
 
+VERSION = "1.0.1"
+
 
 class Ar2Kut(object):
     root = None
@@ -13,7 +15,7 @@ class Ar2Kut(object):
     def ar2kut(self, contenido: "str") -> "str":
         lineas = []
         self.root = ET.ElementTree(ET.fromstring(contenido)).findall(".//widget")
-        lineas.append("<?xml version = '1.0' encoding = 'UTF-8'?>")
+        lineas.append("<?xml version='1.0' encoding='UTF-8' enebootools_ar2kut='%s' ?>" % VERSION)
         lineas.append('<!DOCTYPE KugarTemplate SYSTEM "kugartemplate.dtd">')
         lineas.append(self.resuelve_template())
         lineas = lineas + self.resuelve_lineas()
@@ -66,7 +68,8 @@ class Ar2Kut(object):
                     "NewPage",
                     "PrintFrequency",
                 ):
-                    linea.append('%s="%s"' % (nodo2_name, nodo2[0].text))
+                    if linea:
+                        linea.append('%s="%s"' % (nodo2_name, nodo2[0].text or ""))
 
                 elif nodo2_name == "geometry":
                     for nodo3 in nodo2[0]:
@@ -99,15 +102,15 @@ class Ar2Kut(object):
                             for nodo4 in nodo3[0]:
                                 nodo4_name = nodo4.tag
                                 if nodo4_name == "x":
-                                    xml_field.append('X="%s"' % nodo4.text)
+                                    xml_field.append('X="%s"' % int(nodo4.text))
                                 elif nodo4_name == "y":
-                                    xml_field.append('Y="%s"' % nodo4.text)
+                                    xml_field.append('Y="%s"' % int(nodo4.text))
                                 elif nodo4_name == "width":
-                                    xml_field.append('Width="%s"' % nodo4.text)
+                                    xml_field.append('Width="%s"' % int(nodo4.text))
                                 elif nodo4_name == "height":
-                                    xml_field.append('Height="%s"' % nodo4.text)
+                                    xml_field.append('Height="%s"' % int(nodo4.text))
                         elif nodo3_name == "styleSheet":
-                            estilos = nodo3.text.split(";")
+                            estilos = str(nodo3[0].text or "").split(";")
                             for estilo in estilos:
                                 if "background-color" in estilo:
                                     color = ""
@@ -115,33 +118,38 @@ class Ar2Kut(object):
                                         color = "NOCOLOR"
                                     else:
                                         color = estilo[
-                                            estilo.index("(") : estilo.index(")")
+                                            estilo.index("(") + 1 : estilo.index(")")
                                         ].replace(" ", "")
-
-                                    xml_field.append('BackgroundColor ="%s"' % color)
+                                    xml_field.append('BackgroundColor="%s"' % color)
                                     bg_color_set = True
                                 elif "border-color" in estilo:
-                                    color = estilo[estilo.index("(") : estilo.index(")")].replace(
-                                        " ", ""
-                                    )
+                                    color = estilo[
+                                        estilo.index("(") + 1 : estilo.index(")")
+                                    ].replace(" ", "")
 
-                                    xml_field.append('BorderColor ="%s"' % color)
-                                    xml_field.append('BorderStyle ="1"')
+                                    xml_field.append('BorderColor= "%s"' % color)
+                                    xml_field.append('BorderStyle="1"')
                                     bg_color_set = True
                                 elif "color" in estilo and estilo.index("color") < 2:
-                                    color = estilo[estilo.index("(") : estilo.index(")")].replace(
-                                        " ", ""
-                                    )
+                                    color = estilo[
+                                        estilo.index("(") + 1 : estilo.index(")")
+                                    ].replace(" ", "")
 
                                     xml_field.append('ForegroundColor ="%s"' % color)
                                     fg_color_set = True
                         elif nodo3_name == "text":
-                            xml_field.append('Text = "%s"' % nodo3[0].text)
+                            value = nodo3[0].text
+                            if not value or value == "None":
+                                value = ""
+                            xml_field.append('Text="%s"' % value)
                         elif nodo3_name in ("FunName", "FN"):
-                            xml_field.append('FunctionName = "%s"' % nodo3[0].text)
+                            value = nodo3[0].text
+                            if not value or value == "None":
+                                value = ""
+                            xml_field.append('FunctionName="%s"' % value)
                         elif nodo3_name == "wordWrap":
                             xml_field.append(
-                                'WordWrap = "%s"' % ("1" if nodo3[0].text == "true" else "0")
+                                'WordWrap="%s"' % ("1" if nodo3[0].text == "true" else "0")
                             )
                         elif nodo3_name == "alignment":
                             alignment_txt = nodo3[0].text
@@ -170,11 +178,11 @@ class Ar2Kut(object):
                             for nodo4 in lista_nodos:
                                 nodo4_name = nodo4.tag
                                 if nodo4_name == "family":
-                                    xml_field.append('FontFamily="%s"' % nodo4.text)
+                                    xml_field.append('FontFamily="%s"' % nodo4.text or "")
                                 elif nodo4_name == "pointsize":
-                                    xml_field.append('FontSize="%s"' % nodo4.text)
+                                    xml_field.append('FontSize="%s"' % nodo4.text or "")
                                 elif nodo4_name == "pointsize":
-                                    xml_field.append('FontSize="%s"' % nodo4.text)
+                                    xml_field.append('FontSize="%s"' % nodo4.text or "")
                                 elif nodo4_name == "bold":
                                     xml_field.append(
                                         'FontWeight="%s"' % ("65" if nodo4.text == "true" else "50")
@@ -182,13 +190,30 @@ class Ar2Kut(object):
                                 elif nodo4_name == "italic" and nodo4.text in ("true", "1"):
                                     xml_field.append('FontItalic="1"')
                         else:
-                            xml_field.append('%s = "%s"' % (nodo3.get("name"), nodo3[0].text))
+                            value = nodo3[0].text or ""
+                            if nodo3_name == "BackgroundColor":
+                                value = ",".join(
+                                    [nodo3[0][0].text, nodo3[0][1].text, nodo3[0][2].text]
+                                )
+                                bg_color_set = True
+                            elif nodo3_name == "BorderColor":
+                                value = ",".join(
+                                    [nodo3[0][0].text, nodo3[0][1].text, nodo3[0][2].text]
+                                )
+                                bg_color_set = True
+                            elif nodo3_name == "ForegroundColor":
+                                value = ",".join(
+                                    [nodo3[0][0].text, nodo3[0][1].text, nodo3[0][2].text]
+                                )
+                                fg_color_set = True
+
+                            xml_field.append('%s="%s"' % (nodo3.get("name"), value))
                     if not bg_color_set:
                         xml_field.append('BackgroundColor="255,255,255"')
                     if not fg_color_set:
                         xml_field.append('ForegroundColor="0,0,0"')
 
-                    xml_field.append("/>")
+                    xml_field[-1] += "/>"
                     inner_detail.append(" ".join(xml_field))
                 elif nodo2_class == "rpBox":
                     xml_field = ['<Line Style="1"']
@@ -221,6 +246,11 @@ class Ar2Kut(object):
                                     )
                         elif nodo3_name == "lineWidth":
                             line_width = nodo3[0].text
+
+                    x1 = int(x1)
+                    x2 = int(x2)
+                    y1 = int(y1)
+                    y2 = int(y2)
 
                     inner_detail.append(
                         '<Line Style="1" X1="%s" Y1="%s" X2="%s" Y2="%s" Color ="%s" Width="%s"/>'
@@ -278,7 +308,10 @@ class Ar2Kut(object):
                                 x2 = x1
                                 y2 = y1 + line_height
 
-                            xml_field.append('X1="%s" X2="%s" Y1="%s" Y2="%s"' % (x1, x2, y1, y2))
+                            xml_field.append(
+                                'X1="%s" X2="%s" Y1="%s" Y2="%s"'
+                                % (int(x1), int(x2), int(y1), int(y2))
+                            )
                         elif nodo3_name == "styleSheet":
                             estilos = nodo3.text.split(";")
                             for estilo in estilos:
@@ -286,10 +319,10 @@ class Ar2Kut(object):
                                     color = estilo[estilo.find("(") : estilo.find(")")].replace(
                                         " ", ""
                                     )
-                                    xml_field.append('Color = "%s"' % color)
+                                    xml_field.append('Color="%s"' % color)
                                     color_set = True
                         elif nodo3_name == "lineWidth":
-                            xml_field.append('Width="%s"' % nodo3[0].text)
+                            xml_field.append('Width="%s"' % nodo3[0].text or "")
                             width_set = True
 
                     if not color_set:
@@ -305,7 +338,7 @@ class Ar2Kut(object):
             else:
                 continue
 
-            linea.append(">")
+            linea[-1] += ">"
 
             if inner_detail:
                 linea.append("\n%s" % ("\n".join(inner_detail)))
@@ -344,7 +377,7 @@ class Ar2Kut(object):
                                 valor = prop[0].text
 
                         if not parametro is None and not valor is None:
-                            lista.append('%s="%s"' % (parametro, valor))
+                            lista.append('%s="%s"' % (parametro, valor or ""))
 
         lista.append(">")
 
@@ -391,7 +424,7 @@ class Ar2Kut(object):
     def write_file(self, file_name, content):
         self.iface.info("AR2KUT: Escribiendo %s" % (file_name))
         file_ = open(file_name, "w", encoding="ISO-8859-15")
-        content = file_.write(content)
+        file_.write(content.encode("ISO-8859-15").decode())
         file_.close()
 
     def ejecutarComando(self, comando: str):
