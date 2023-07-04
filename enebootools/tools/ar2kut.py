@@ -15,10 +15,12 @@ class Ar2Kut(object):
     def ar2kut(self, contenido: "str") -> "str":
         lineas = []
         self.root = ET.ElementTree(ET.fromstring(contenido)).findall(".//widget")
-        lineas.append("<?xml version='1.0' encoding='UTF-8' enebootools_ar2kut='%s' ?>" % VERSION)
+        lineas.append(
+            "<?xml version = '1.0' encoding = 'UTF-8' enebootools_ar2kut='%s' ?>" % VERSION
+        )
         lineas.append('<!DOCTYPE KugarTemplate SYSTEM "kugartemplate.dtd">')
         lineas.append(self.resuelve_template())
-        lineas = lineas + self.resuelve_lineas()
+        lineas += self.resuelve_lineas()
         lineas.append("</KugarTemplate>")
 
         return "\n".join(lineas)
@@ -86,13 +88,13 @@ class Ar2Kut(object):
                     xml_field = []
 
                     if nodo2_class == "rpField":
-                        xml_field.append("<Field")
+                        xml_field.append("<Field ")
                     elif nodo2_class == "rpCalculatedField":
-                        xml_field.append("<CalculatedField")
+                        xml_field.append("<CalculatedField ")
                     elif nodo2_class == "rpSpecial":
-                        xml_field.append("<Special")
+                        xml_field.append("<Special ")
                     else:
-                        xml_field.append("<Label")
+                        xml_field.append("<Label ")
 
                     for nodo3 in nodo2:
                         nodo3_name = nodo3.get("name")
@@ -120,15 +122,13 @@ class Ar2Kut(object):
                                         color = estilo[
                                             estilo.index("(") + 1 : estilo.index(")")
                                         ].replace(" ", "")
-                                    xml_field.append('BackgroundColor="%s"' % color)
+                                    xml_field.append('BackgroundColor = "%s"' % color)
                                     bg_color_set = True
                                 elif "border-color" in estilo:
-                                    color = estilo[
-                                        estilo.index("(") + 1 : estilo.index(")")
-                                    ].replace(" ", "")
+                                    color = estilo[estilo.index("(") + 1 : estilo.index(")")]
 
-                                    xml_field.append('BorderColor= "%s"' % color)
-                                    xml_field.append('BorderStyle="1"')
+                                    xml_field.append('BorderColor = "%s"' % color)
+                                    xml_field.append('BorderStyle ="1"')
                                     bg_color_set = True
                                 elif "color" in estilo and estilo.index("color") < 2:
                                     color = estilo[
@@ -141,15 +141,15 @@ class Ar2Kut(object):
                             value = nodo3[0].text
                             if not value or value == "None":
                                 value = ""
-                            xml_field.append('Text="%s"' % value)
+                            xml_field.append('Text ="%s"' % value)
                         elif nodo3_name in ("FunName", "FN"):
                             value = nodo3[0].text
                             if not value or value == "None":
                                 value = ""
-                            xml_field.append('FunctionName="%s"' % value)
+                            xml_field.append('FunctionName ="%s"' % value)
                         elif nodo3_name == "wordWrap":
                             xml_field.append(
-                                'WordWrap="%s"' % ("1" if nodo3[0].text == "true" else "0")
+                                'WordWrap ="%s"' % ("1" if nodo3[0].text == "true" else "0")
                             )
                         elif nodo3_name == "alignment":
                             alignment_txt = nodo3[0].text
@@ -191,21 +191,15 @@ class Ar2Kut(object):
                                     xml_field.append('FontItalic="1"')
                         else:
                             value = nodo3[0].text or ""
-                            if nodo3_name == "BackgroundColor":
-                                value = ",".join(
+
+                            if nodo3_name in (
+                                "BackgroundColor",
+                                "BorderColor",
+                                "ForegroundColor",
+                            ):  # Los seteamos como el parser original.
+                                value = "".join(
                                     [nodo3[0][0].text, nodo3[0][1].text, nodo3[0][2].text]
                                 )
-                                bg_color_set = True
-                            elif nodo3_name == "BorderColor":
-                                value = ",".join(
-                                    [nodo3[0][0].text, nodo3[0][1].text, nodo3[0][2].text]
-                                )
-                                bg_color_set = True
-                            elif nodo3_name == "ForegroundColor":
-                                value = ",".join(
-                                    [nodo3[0][0].text, nodo3[0][1].text, nodo3[0][2].text]
-                                )
-                                fg_color_set = True
 
                             xml_field.append('%s="%s"' % (nodo3.get("name"), value))
                     if not bg_color_set:
@@ -330,7 +324,7 @@ class Ar2Kut(object):
                     if not width_set:
                         xml_field.append('Width="1"')
 
-                    xml_field.append("/>")
+                    xml_field[-1] += "/>"
                     inner_detail.append(" ".join(xml_field))
 
             if linea:
@@ -341,23 +335,27 @@ class Ar2Kut(object):
             linea[-1] += ">"
 
             if inner_detail:
-                linea.append("\n%s" % ("\n".join(inner_detail)))
+                linea[-1] += "\n%s" % ("\n".join(inner_detail))
 
+            final = ""
             if nodo_name == "rpDetailHeader":
-                linea.append("\n</DetailHeader>")
+                final = "\n</DetailHeader>"
             elif nodo_name == "rpAddOnHeader":
-                linea.append("\n</AddOnHeader>")
+                final = "\n</AddOnHeader>"
             elif nodo_name in ("rpDetail", "repDetail"):
-                linea.append("\n</Detail>")
+                final = "\n</Detail>"
             elif nodo_name == "rpDetailFooter":
-                linea.append("\n</DetailFooter>")
+                final = "\n</DetailFooter>"
             elif nodo_name == "rpAddOnFooter":
-                linea.append("\n</AddOnFooter>")
+                final = "\n</AddOnFooter>"
             elif nodo_name == "rpPageHeader":
-                linea.append("\n</PageHeader>")
+                final = "\n</PageHeader>"
             elif nodo_name == "rpPageFooter":
-                linea.append("\n</PageFooter>")
-            lineas.append(" ".join(linea))
+                final = "\n</PageFooter>"
+
+            linea[-1] += final
+            nueva_linea = " ".join(linea)
+            lineas.append(nueva_linea)
 
         return lineas
 
