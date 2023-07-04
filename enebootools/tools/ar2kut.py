@@ -15,7 +15,7 @@ class Ar2Kut(object):
 
         lineas = []
         self.root = ET.ElementTree(ET.fromstring(contenido)).findall(".//widget")
-        lineas.append("<?xml version = '1.0' encoding = 'UTF-8' enebootools='%s' ?>" % __VERSION__)
+        lineas.append("<?xml version = '1.0' encoding = 'UTF-8'?>")
         lineas.append('<!DOCTYPE KugarTemplate SYSTEM "kugartemplate.dtd">')
         lineas.append(self.resuelve_template())
         lineas += self.resuelve_lineas()
