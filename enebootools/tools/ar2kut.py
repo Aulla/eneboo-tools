@@ -2,8 +2,6 @@ from typing import Any, List
 import os, sys
 import xml.etree.ElementTree as ET
 
-VERSION = "1.0.1"
-
 
 class Ar2Kut(object):
     root = None
@@ -13,11 +11,11 @@ class Ar2Kut(object):
         self.iface = iface
 
     def ar2kut(self, contenido: "str") -> "str":
+        from enebootools import __VERSION__
+
         lineas = []
         self.root = ET.ElementTree(ET.fromstring(contenido)).findall(".//widget")
-        lineas.append(
-            "<?xml version = '1.0' encoding = 'UTF-8' enebootools_ar2kut='%s' ?>" % VERSION
-        )
+        lineas.append("<?xml version = '1.0' encoding = 'UTF-8' enebootools='%s' ?>" % __VERSION__)
         lineas.append('<!DOCTYPE KugarTemplate SYSTEM "kugartemplate.dtd">')
         lineas.append(self.resuelve_template())
         lineas += self.resuelve_lineas()
