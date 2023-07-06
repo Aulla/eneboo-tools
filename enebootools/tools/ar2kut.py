@@ -411,16 +411,20 @@ class Ar2Kut(object):
     def read_file(self, file_name) -> str:
         self.iface.debug("AR2KUT: Leyendo %s" % file_name)
         content = ""
-        file_ = open(file_name, "r", encoding="ISO-8859-15")
-        content = file_.read()
+        file_ = open(file_name, "rb")
+        content_bytes = file_.read()
+        content = content_bytes.decode("ISO-8859-15", errors="replace")
+
         file_.close()
 
         return content
 
-    def write_file(self, file_name, content):
+    def write_file(self, file_name, content: str):
         self.iface.info("AR2KUT: Escribiendo %s" % (file_name))
-        file_ = open(file_name, "w", encoding="ISO-8859-15")
-        file_.write(content.encode("ISO-8859-15").decode())
+        file_ = open(file_name, "wb")
+        byte_content = content.encode("ISO-8859-15", errors="replace")
+        file_.write(byte_content)
+
         file_.close()
 
     def ejecutarComando(self, comando: str):
