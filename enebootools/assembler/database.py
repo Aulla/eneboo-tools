@@ -12,7 +12,7 @@ from lxml import etree
 from enebootools import CONF_DIR
 from enebootools.assembler.config import cfg
 from enebootools.lib.utils import one, find_files, get_max_mtime, check_folder_clean
-from enebootools.tools import ar2kut
+from enebootools.tools import ar2kut, git
 import enebootools.lib.peewee as peewee
 from enebootools.mergetool import projectbuilder
 from enebootools.mergetool import MergeToolInterface
@@ -186,9 +186,25 @@ def do_build(iface, target, feat, rebuild=True, dstfolder=None, only_dep=None):
         iface.error("Error al generar las instrucciones de compilado.")
         return False
     buildpath = os.path.join(build_instructions.get("path"), "build")
+    build_instructions.set("GitBranch", git.resolve_current_branch(buildpath))
     if not os.path.exists(buildpath):
         os.mkdir(buildpath)
     dstfile = os.path.join(buildpath, "%s.build.xml" % target)
+    if target in ("updatepatch", "fullpatch"):
+        dstfile_src = os.path.join(buildpath, "src.build.xml")
+        if os.path.exists(dstfile_src):
+            current_branch = git.resolve_current_branch(buildpath)
+            src_tree = etree.parse(dstfile_src)
+            src_branch = src_tree.getroot().get("GitBranch")
+            if src_branch != current_branch:
+                iface.error(
+                    "El branch de la base de datos de origen (%s) no coincide con el actual (%s)"
+                    % (src_branch, current_branch)
+                )
+                return False
+    
+
+
     build_instructions.getroottree().write(dstfile, pretty_print=True)
     depends = build_instructions.get("depends", "").split(" ")
     if target == "src" and rebuild:
