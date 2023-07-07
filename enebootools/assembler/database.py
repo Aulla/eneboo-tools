@@ -186,9 +186,11 @@ def do_build(iface, target, feat, rebuild=True, dstfolder=None, only_dep=None):
         iface.error("Error al generar las instrucciones de compilado.")
         return False
     buildpath = os.path.join(build_instructions.get("path"), "build")
-    build_instructions.set("GitBranch", git.resolve_current_branch(buildpath))
     if not os.path.exists(buildpath):
         os.mkdir(buildpath)
+
+    build_instructions.set("GitBranch", git.resolve_current_branch(buildpath))
+
     dstfile = os.path.join(buildpath, "%s.build.xml" % target)
     if target in ("updatepatch", "fullpatch"):
         dstfile_src = os.path.join(buildpath, "src.build.xml")
@@ -198,7 +200,7 @@ def do_build(iface, target, feat, rebuild=True, dstfolder=None, only_dep=None):
             src_branch = src_tree.getroot().get("GitBranch")
             if src_branch != current_branch:
                 iface.error(
-                    "El branch de la base de datos de origen (%s) no coincide con el actual (%s)"
+                    "El branch de origen (%s) no coincide con el actual (%s). Cambia de rama o borra la carpeta build"
                     % (src_branch, current_branch)
                 )
                 return False
