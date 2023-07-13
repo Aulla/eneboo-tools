@@ -198,7 +198,7 @@ def do_build(iface, target, feat, rebuild=True, dstfolder=None, only_dep=None):
             current_branch = git.resolve_current_branch(buildpath)
             src_tree = etree.parse(dstfile_src)
             src_branch = src_tree.getroot().get("GitBranch")
-            if src_branch != current_branch:
+            if src_branch and src_branch != current_branch:
                 iface.error(
                     "El branch de origen (%s) no coincide con el actual (%s). Cambia de rama o borra la carpeta build"
                     % (src_branch, current_branch)
