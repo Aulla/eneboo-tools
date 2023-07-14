@@ -726,7 +726,21 @@ class XMLDiffer(object):
         if len(opcodes) == 0:
             # self.iface.debug("Opcodes vacío. ?")
             return
-        if len(opcodes) > 1 or opcodes[0][0] != "equal":
+                
+        old_opcodes = opcodes
+        opcodes = []
+        for action, a1, a2, b1, b2 in old_opcodes:
+
+            if action == "insert":
+                cadena = str(final_elem[b1:b2])[1:-1].strip()
+                if cadena.startswith("<!--"):
+                    continue 
+            
+            opcodes.append([action, a1, a2, b1, b2])
+        
+
+
+        if len([item for item in opcodes if item[0] != "equal"]):
             patchelem = self.create_diff("patch-node", select=base_elem)
         else:
             patchelem = None
