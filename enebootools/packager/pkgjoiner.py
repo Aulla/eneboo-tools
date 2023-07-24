@@ -168,7 +168,7 @@ def createpkg(iface, modulefolder, dst_file, emulate_mode):
 
             filepath = os.path.abspath(os.path.join(fpath, filename))
             path_dirs_list = pathlib.Path(filepath)
-            if "test" in path_dirs_list.parts and not iface.include_test:
+            if "test" in path_dirs_list.parts and not getattr(iface, 'include_test', False):
                 print("fichero %s incluye carpeta 'test' en path. Ignorado." % (filepath))
                 continue
 
