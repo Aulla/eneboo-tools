@@ -218,9 +218,11 @@ def do_build(iface, target, feat, rebuild=True, dstfolder=None, only_dep=None):
             dep = dep.strip()
             if dep == "":
                 continue
+
             if not is_target_built(iface, dep, feat):
                 # Si tiene una dependencia, y no está cumplida, recompilarla:
                 do_build(iface, dep, feat, rebuild=False)
+            
 
     if mergetool.ONLY_FILES and target == "base":
         rebuild = False

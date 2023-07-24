@@ -5,6 +5,7 @@ from enebootools import EnebooToolsInterface
 
 from enebootools.assembler import database as asmdb
 from enebootools.assembler import save_auto
+from enebootools.tools import dumps
 
 
 class AssemblerInterface(EnebooToolsInterface):
@@ -65,6 +66,16 @@ class AssemblerInterface(EnebooToolsInterface):
             description="Para la funcionalidad $feat guarda los cambios recientes en al parche actual",
             call_function=self.do_save_recent,
         )
+
+        self.save_recent_action = self.parser.declare_action(
+            name="dump",
+            args=["feat", "dest_file", "exec_name"],
+            min_argcount=1,
+            options=[],
+            description="Para la funcionalidad $feat genera un dump con el contenido de final",
+            call_function=self.do_dump,
+        )
+
         self.build_action.set_help_arg(
             feat="Funcionalidad a construir",
         )
@@ -147,9 +158,9 @@ class AssemblerInterface(EnebooToolsInterface):
         except Exception as e:
             self.exception(type(e).__name__, str(e))
 
-    def do_build(self, target, feat, only_dep=None):
+    def do_build(self, target, feat, only_dep=None, rebuild=True, disable_ar2kut = False):
         try:
-            return asmdb.do_build(self, target, feat, only_dep=only_dep)
+            return asmdb.do_build(self, target, feat, only_dep=only_dep, rebuild=rebuild)
         except Exception as e:
             self.exception(type(e).__name__, str(e))
 
@@ -166,6 +177,17 @@ class AssemblerInterface(EnebooToolsInterface):
 
         except Exception as e:
             self.exception(type(e).__name__, str(e))
+
+    def do_dump(self, feat, dest_file=None, exec_name=None):
+        try:
+            #asmdb.do_dump(self, feat)
+            self.do_build("final", feat, rebuild=False)
+            dumps.build_dump(self, feat, dest_file, exec_name)
+            
+
+        except Exception as e:
+            self.exception(type(e).__name__, str(e))
+    
 
     def do_save_auto(self, feat):
         try:
