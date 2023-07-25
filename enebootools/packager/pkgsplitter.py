@@ -206,7 +206,7 @@ class UnpackerClass(object):
             path1 = os.path.join(self.dest, areapath(area) )
             path2 = os.path.join(self.dest, path )
             
-            if name in self.mod: print("WARN: Modulo redeclarado:", mod)
+            if name in self.mod.keys(): print("WARN: Modulo redeclarado:", name)
             self.mod[name] = module
             
             self.modpath[name] = path
