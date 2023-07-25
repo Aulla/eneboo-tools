@@ -138,7 +138,7 @@ def createpkg(iface, modulefolder, dst_file, emulate_mode):
     filelines = []
     shasum = ""
     ignored_ext = set([])
-    load_ext = set([".qs", ".mtd", ".ts", ".ar", ".kut", ".qry", ".ui", ".xml", ".xpm", ".py"])
+    load_ext = set([".qs", ".mtd", ".ts", ".ar", ".kut", ".qry", ".ui", ".xml", ".xpm", ".py", ".jrxml", ".jasper"])
     list_modules = []
     for folder, module in zip(file_folders, modnames):
         fpath = ""
@@ -177,9 +177,8 @@ def createpkg(iface, modulefolder, dst_file, emulate_mode):
                 continue
 
             file_basename = os.path.basename(filename)
-
-            sha1text = hashlib.sha1(open(filepath, "rb").read()).hexdigest()
-            sha1text = sha1text.upper()
+            bdata = open(filepath, "rb").read()
+            sha1text = hashlib.sha1(bdata).hexdigest().upper()
             shasum += sha1text
             file_list.append(filepath)
             filelines.append(
@@ -189,6 +188,8 @@ def createpkg(iface, modulefolder, dst_file, emulate_mode):
     <text>%s</text>
     %s
     <shatext>%s</shatext>
+    <shabinary<%s</shabinary>
+    <binary>%s</binary>
   </file>
 """
                 % (
@@ -197,6 +198,8 @@ def createpkg(iface, modulefolder, dst_file, emulate_mode):
                     file_basename,
                     "<skip>false</skip>" if emulate_mode else "",
                     sha1text,
+                    sha1text,
+                    bdata
                 )
             )
 
