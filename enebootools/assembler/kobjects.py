@@ -65,7 +65,7 @@ class BaseObject(object):
     @classmethod
     def by_abspath(self, relpath):
         result = None
-        if "2.4.0" in relpath or "modulos_otros" in relpath:
+        if "2.4.0" in relpath or "modulos_" in relpath:
             for num, key in enumerate(
                 [item for item in self._by_abspath if item[0] == self.__name__]
             ):
