@@ -11,10 +11,13 @@ if TYPE_CHECKING:
 def build_dump(iface : 'assembler.AssemblerInterface', feat: str, dest_file: Optional[str] = None, exec_name: Optional[str] = None):
     """Builds a dump."""
 
-    iface.warn("Generando dump de: %s" % feat)
+    iface.info("Generando dump de: %s" % feat)
     oi = ObjectIndex(iface)
     oi.analyze_objects()
     build_instructions = oi.get_build_actions("final", feat, None)
+    if build_instructions is None:
+        iface.warn("No se pudo generar el dump")
+        return False
     dest_path = os.path.join(build_instructions.get("path"), "build")
     src_dir = os.path.join(dest_path, "final")
     final_dir = os.path.dirname(dest_file) if dest_file else src_dir
@@ -28,12 +31,12 @@ def build_dump(iface : 'assembler.AssemblerInterface', feat: str, dest_file: Opt
         iface.warn("No se puedo ejecutar el comando")
         return False
 
-    dst_file = os.path.basename(dest_file) if dest_file else os.path.join(dest_path, "%s.sqlite3" % feat)
+    dst_file = dest_file if dest_file else os.path.join(dest_path, "%s.sqlite3" % feat)
     if not move_dump(iface, feat, dst_file):
         iface.warn("No se puedo mover el dump")
         return False
 
-    iface.warn("Dump generado en: %s" % dst_file)
+    iface.info("Dump generado en: %s" % dst_file)
     return True
 
 def elimina_bd_previa(feat: str):
@@ -67,10 +70,10 @@ def build_package(iface : 'assembler.AssemblerInterface', feat: str, src_dir:str
 
 def run_command(iface, feat, pkg_file, exec_name: Optional[str] = None):
     """Runs the command."""
-
+    exec_name = exec_name or "eneboo"
     elimina_bd_previa(feat)
-    print("*", pkg_file, exec_name)    
-    cmd = "%s -silentconn '%s.s3db:yeboyebo:SQLite3:nogui' -c 'sys.loadAbanQPackage' -a '%s:' -q" % (exec_name if exec_name else "eneboo", feat, pkg_file)
+    iface.debug("Usando ejecutable: %s" % exec_name)
+    cmd = "%s -silentconn '%s.s3db:yeboyebo:SQLite3:nogui' -c 'sys.loadAbanQPackage' -a '%s:' -q" % (exec_name, feat, pkg_file)
     if os.system(cmd):
         iface.warn("No se pudo ejecutar el comando.Comprueba que eneboo está en el path")
         return False 
@@ -96,7 +99,7 @@ def move_dump(iface, feat, dst_file):
     if os.path.exists(dst_file):
         os.remove(dst_file)
 
-    iface.warn("Moviendo %s a %s" % (src_file, dst_file))
+    iface.debug("Moviendo %s a %s" % (src_file, dst_file))
     os.rename(src_file, dst_file)
 
     return True

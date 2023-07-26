@@ -178,7 +178,8 @@ def createpkg(iface, modulefolder, dst_file, emulate_mode):
 
             file_basename = os.path.basename(filename)
             bdata = open(filepath, "rb").read()
-            sha1text = hashlib.sha1(bdata).hexdigest().upper()
+            sha1text = hashlib.sha1(bdata).hexdigest().upper() if not filepath.endswith(".jasper") else ""
+            sha1bin = hashlib.sha1(bdata).hexdigest().upper() if filepath.endswith(".jasper") else ""
             shasum += sha1text
             file_list.append(filepath)
             filelines.append(
@@ -188,8 +189,7 @@ def createpkg(iface, modulefolder, dst_file, emulate_mode):
     <text>%s</text>
     %s
     <shatext>%s</shatext>
-    <shabinary<%s</shabinary>
-    <binary>%s</binary>
+    <shabinary>%s</shabinary>
   </file>
 """
                 % (
@@ -198,8 +198,7 @@ def createpkg(iface, modulefolder, dst_file, emulate_mode):
                     file_basename,
                     "<skip>false</skip>" if emulate_mode else "",
                     sha1text,
-                    sha1text,
-                    bdata
+                    sha1bin,
                 )
             )
 

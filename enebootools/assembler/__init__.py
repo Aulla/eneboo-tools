@@ -67,13 +67,19 @@ class AssemblerInterface(EnebooToolsInterface):
             call_function=self.do_save_recent,
         )
 
-        self.save_recent_action = self.parser.declare_action(
+        self.dump_action = self.parser.declare_action(
             name="dump",
             args=["feat", "dest_file", "exec_name"],
             min_argcount=1,
             options=[],
             description="Para la funcionalidad $feat genera un dump con el contenido de final",
             call_function=self.do_dump,
+        )
+
+        self.dump_action.set_help_arg(
+            feat="Funcionalidad a almacenar el la bd",
+            dest_file="Archivo de destino",
+            exec_name="Nombre de ejecutable",
         )
 
         self.build_action.set_help_arg(
