@@ -195,9 +195,10 @@ class Ar2Kut(object):
                                 "BorderColor",
                                 "ForegroundColor",
                             ):  # Los seteamos como el parser original.
-                                value = "".join(
-                                    [nodo3[0][0].text, nodo3[0][1].text, nodo3[0][2].text]
-                                )
+                                if len(nodo3[0]) == 3:
+                                    value = "".join(
+                                        [nodo3[0][0].text, nodo3[0][1].text, nodo3[0][2].text]
+                                    )
 
                             xml_field.append('%s="%s"' % (nodo3.get("name"), value))
                     if not bg_color_set:
