@@ -865,6 +865,8 @@ def update_xml_patch(iface, fpatch, basedir):
         current_et = etree.parse(patch_xml_file, parser)
     except IOError as e:
         iface.error("No se pudo leer el parche: " + str(e))
+        return
+
     current_root = current_et.getroot()
 
     found_changes = False
@@ -881,31 +883,72 @@ def update_xml_patch(iface, fpatch, basedir):
             action.set("style", iface.patch_xml_style_name)
 
         new_action = str(action.tag).split("}")[1]
+
+        full_file_path = os.path.join(fpatch.patchdir, new_name)
+        full_file_base = os.path.join(basedir, new_path, new_name)
+
+        # Correcciones con base , por si la acción no es realmente la correcta.
+        if new_action == "deleteFile":
+            if os.path.exists(full_file_path):
+                os.remove(full_file_path)
+
+            if not os.path.exists(full_file_base): # Si en base no existía, no añadimos linea en el xml.
+                for current_action in current_root: # Buscamos referencias al fichero y lo eliminamos del xml.
+                    current_path = current_action.get("path")
+                    current_name = current_action.get("name")
+                    if current_path == new_path and current_name == new_name:
+                        current_root.remove(current_action)
+                        break
+
+                continue
+
+        elif new_action == "addFile":
+            if os.path.exists(full_file_base):
+                if new_name.endswith("qs"):
+                    new_action = "patchScript"
+                elif new_name.endswith("py"):
+                    new_action = "patchPy"
+                else:
+                    new_action = "patchXml"
+
+
         found = False
         for current_action in current_root:
             current_path = current_action.get("path")
             current_name = current_action.get("name")
-            if current_path == new_path and current_name == new_name:
-                current_root.remove(current_action)
-                del current_action
+
+
+            if current_path == new_path and current_name == new_name: # Hacemos update ...
+
+                iface.info("Editando linea %s %s" % (new_action, os.path.join(new_path, new_name)))
+
+                current_action.tag = "__tag__%s" % new_action
+                current_action.set('path', new_path)
+                current_action.set('name', new_name) 
+                current_action.set('style', action.get('style'))
                 found = True
                 break
+        
+        if not found: # Hacemos insert ...
+            iface.info("Nueva linea %s %s" % ( new_action, os.path.join(new_path, new_name)))
+            current_root.append(action)
 
-        iface.info(
-            "%s linea %s %s"
-            % ("Editando" if found else "Nueva", new_action, os.path.join(new_path, new_name))
-        )
+    files_not_found = []
+    for current_action in current_root:
+        file_path = os.path.join(fpatch.patchdir, current_action.get("name"))
+        # Comprobamos si existe el fichero en la carpeta de parches ...
+        if not os.path.exists(file_path) and not "deleteFile" in current_action.tag:
+            files_not_found.append(file_path)
 
-        if new_action == "deleteFile":
-            full_file_path = os.path.join(fpatch.patchdir, new_name)
-            if os.path.exists(full_file_path):
-                os.remove(full_file_path)
+    if files_not_found:
+        iface.error("Algunos ficheros especificados en el parche no existe en la carpeta de parches:")
+        for file_ in files_not_found:
+            iface.error("* %s" %file_)
+        iface.error("Proceso detenido.")
+        return
+            
 
-            full_file_base = os.path.join(basedir, current_path, current_name)
-            if not os.path.exists(full_file_base):
-                continue
-
-        current_root.append(action)
+        
 
     if not found_changes:
         ts = datetime.datetime.now().timestamp()
@@ -921,6 +964,7 @@ def update_xml_patch(iface, fpatch, basedir):
     result = result.replace(
         'xmlns:flpatch="http://www.abanqg2.com/es/directori/abanq-ensambla/?flpatch"', ""
     )
+    result = result.replace("__tag__", "flpatch:")
     result = result.replace("><flpatch", ">\n    <flpatch")
     result = result.replace("\n  <flpatch", "\n    <flpatch")
     result = result.replace('">', '" >')
