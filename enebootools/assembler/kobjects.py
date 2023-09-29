@@ -7,6 +7,7 @@ from enebootools.lib.utils import one, find_files, get_max_mtime, read_file_list
 
 from .featureconfig import loadFeatureConfig
 from .databasemodels import KnownObjects
+from typing import List, Optional
 
 
 class BaseObject(object):
@@ -14,11 +15,20 @@ class BaseObject(object):
     _by_relpath = {}
     _by_formal_name = {}
     _by_abspath = {}
+    required_modules : List[str]
+    required_features: List[str]
+    name: str = ""
+    relpath: str = ""
+    abspath: str = ""
+    type: str = ""
+    fullpath : str = ""
+    obj : 'BaseObject'
 
     def __init__(self, iface, obj):
         self.iface = iface
         self.obj = obj
         self.info = {}
+        self.required_modules = []
         self.all_required_modules = None
         self.all_required_features = None
         self.fullpath = os.path.join(obj.abspath, obj.relpath)
@@ -48,59 +58,59 @@ class BaseObject(object):
         return str(self.obj.relpath)
 
     @classmethod
-    def by_name(self, name):
-        result = self._by_name.get((self.__name__, str(name)), None)
+    def by_name(cls, name):
+        result = cls._by_name.get((cls.__name__, str(name)), None)
         return result
 
     @classmethod
-    def by_formal_name(self, name):
-        result = self._by_formal_name.get((self.__name__, str(name)), None)
+    def by_formal_name(cls, name):
+        result = cls._by_formal_name.get((cls.__name__, str(name)), None)
         return result
 
     @classmethod
-    def by_relpath(self, relpath):
-        result = self._by_relpath.get((self.__name__, str(relpath)), None)
+    def by_relpath(cls, relpath):
+        result = cls._by_relpath.get((cls.__name__, str(relpath)), None)
         return result
 
     @classmethod
-    def by_abspath(self, relpath):
+    def by_abspath(cls, relpath):
         result = None
         if "2.4.0" in relpath or "modulos_" in relpath:
             for num, key in enumerate(
-                [item for item in self._by_abspath if item[0] == self.__name__]
+                [item for item in cls._by_abspath if item[0] == cls.__name__]
             ):
-                obj = self._by_abspath[key]
+                obj = cls._by_abspath[key]
                 if str(obj.fullpath).endswith("/%s" % relpath):
                     result = obj
                     break
             result = [
                 value
-                for key, value in self._by_abspath.items()
-                if key[0] == self.__name__ and value.fullpath.endswith("/%s" % relpath)
+                for key, value in cls._by_abspath.items()
+                if key[0] == cls.__name__ and value.fullpath.endswith("/%s" % relpath)
             ]
         return result[0] if result else None
 
     @classmethod
-    def items(self):
-        return [v for k, v in list(self._by_name.items()) if k[0] == self.__name__]
+    def items(cls):
+        return [v for k, v in list(cls._by_name.items()) if k[0] == cls.__name__]
 
     @classmethod
-    def find(self, name):
+    def find(cls, name):
         return (
-            self.by_abspath(name)
-            or self.by_formal_name(name)
-            or self.by_name(name)
-            or self.by_relpath(name)
+            cls.by_abspath(name)
+            or cls.by_formal_name(name)
+            or cls.by_name(name)
+            or cls.by_relpath(name)
         )
 
     def setup(self):
         pass
 
     @classmethod
-    def cls_finish_setup(self):
-        for k, obj in list(self._by_name.items()):
+    def cls_finish_setup(cls):
+        for k, obj in list(cls._by_name.items()):
             cname, name = k
-            if cname != self.__name__:
+            if cname != cls.__name__:
                 continue
             obj.finish_setup()
 
@@ -116,7 +126,7 @@ class BaseObject(object):
         myreq = []
 
         for modname in self.required_modules:
-            obj = ModuleObject.find(modname)
+            obj: 'BaseObject' = ModuleObject.find(modname)
             if obj is None:
                 self.iface.info(
                     "Modulo con nombre %s no encontrado (requerido por %s )"
@@ -185,22 +195,22 @@ class BaseObject(object):
                 req += new_reqs
 
             req += [modulename for modulename in myreq if modulename not in req]
-            new_list = []
 
-            for module_name in req:
-                if (
-                    "/" not in module_name
-                ):  # esto filtra dependencias que son añadidas por código de módulo, para evitar que introduzca módulos con versiones incorrectas
-                    module_obj = ModuleObject.find(module_name)
-                    formal_name = module_obj.formal_name()
-                    if formal_name in [
-                        formal_name for req_item in req if str(req_item).endswith(formal_name)
-                    ]:
-                        continue
+        # Limpieza ...
+        clear_req = []
+        for module_def in req:
+            if "/" not in module_def:
+                module_obj = ModuleObject.find(module_def)
+                formal_name = module_obj.formal_name()
+                if formal_name in req:
+                    continue
+            else:
+                if module_def in clear_req:
+                    continue
 
-                new_list.append(module_name)
-            req += new_list
-        self.all_required_modules = req
+            clear_req.append(module_def)
+
+        self.all_required_modules = clear_req
         return req
 
     def _get_full_required_features(self):
