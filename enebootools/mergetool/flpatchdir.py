@@ -840,6 +840,9 @@ def update_patch_file(iface, mod_file, patchdir, basedir, srcdir, finaldir):
         iface.info("New file found -> %s." % (src_file))
         with open(src_file, "rb") as file_:
             iface.output.write(file_.read())
+        # TODO: Crear carpetas si no existe
+        final_dir = os.path.dirname(final_file)
+        os.makedirs(final_dir, exist_ok=True)
         shutil.copyfile(src_file, final_file)
     elif os.path.exists(base_file) and not os.path.exists(
         src_file
