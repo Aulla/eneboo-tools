@@ -1541,7 +1541,7 @@ def check_py_classes(iface, base):
 
 
 def patch_py(iface, base, patch):
-    iface.debug("Procesando Patch PY $base:%s + $patch:%s" % (base, patch))
+    iface.debug("Procesando Patch api PY $base:%s + $patch:%s" % (base, patch))
     nbase, flbase = file_reader(base)
     npatch, flpatch = file_reader(patch)
     if flbase is None or flpatch is None:
