@@ -970,6 +970,7 @@ def update_xml_patch(iface, fpatch, basedir):
     result = result.replace("__tag__", "flpatch:")
     result = result.replace("><flpatch", ">\n    <flpatch")
     result = result.replace("\n  <flpatch", "\n    <flpatch")
+    result = result.replace("/></flpatch:modifications>\n", "/>")
     result = result.replace('">', '" >')
     result = result.replace('"/>', '" />')
     result = result.replace("  path=", " path=")
