@@ -114,7 +114,59 @@ class BaseObject(object):
                 continue
             obj.finish_setup()
 
+
     def _get_full_required_modules(self):
+        import enebootools
+
+        req = []
+        myreq = []
+
+        for modname in self.required_modules:
+            obj: 'BaseObject' = ModuleObject.find(modname)
+            if obj is None:
+                self.iface.info(
+                    "Modulo con nombre %s no encontrado (requerido por %s )"
+                    % (modname, self.formal_name())
+                )
+                continue
+
+            new_reqs = []
+
+            if obj.type == "mod":
+                for module_def in obj.required_modules:
+                    obj2 = ModuleObject.find(module_def)
+                    formal_name = obj2.formal_name()
+                    if not [
+                        mod_name
+                        for mod_name in self.required_modules
+                        if mod_name.endswith(formal_name)
+                    ]:
+                        if not formal_name in new_reqs:
+                            new_reqs.append(formal_name)
+
+            req += new_reqs
+            myreq.append(modname)
+
+        req += myreq
+
+        # Limpieza ...
+        clear_req = []
+        for module_def in req:
+            if "/" not in module_def:
+                module_obj = ModuleObject.find(module_def)
+                formal_name = module_obj.formal_name()
+                if formal_name in req:
+                    continue
+            else:
+                if module_def in clear_req:
+                    continue
+
+            clear_req.append(module_def)
+
+        self.all_required_modules = clear_req
+        return req
+
+        """     def _get_full_required_modules_old(self):
         import enebootools
 
         modo = enebootools.QS_EXTEND_MODE
@@ -211,7 +263,7 @@ class BaseObject(object):
             clear_req.append(module_def)
 
         self.all_required_modules = clear_req
-        return req
+        return req """
 
     def _get_full_required_features(self):
         if self.all_required_features:
