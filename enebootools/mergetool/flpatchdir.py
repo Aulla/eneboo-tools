@@ -856,6 +856,9 @@ def update_patch_file(iface, mod_file, patchdir, basedir, srcdir, finaldir):
 def update_xml_patch(iface, fpatch, basedir):
     patch_xml_file = os.path.join(fpatch.patchdir, fpatch.patch_name + ".xml")
     # iface.info("Actualizando cambios en %s" % patch_xml_file)
+    if not os.path.exists(patch_xml_file):
+        iface.error("No existe el archivo %s. La primera vez es necesario usar save-fullpatch para crearlo" % patch_xml_file)
+        return
     try:
         encoding = "iso-8859-15"
         parser = etree.XMLParser(

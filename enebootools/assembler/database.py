@@ -236,7 +236,7 @@ def do_build(iface, target, feat, rebuild=True, dstfolder=None, only_dep=None):
     mergetool.ONLY_FILES = []
     if target in ("final", "base") and not DISABLE_AR2KUT:
         final_path = os.path.join(buildpath, target)
-        iface.warn("Lanzando ar2kut sobre %s" % final_path)
+        iface.debug("Lanzando ar2kut sobre %s" % final_path)
         ar2_kut = ar2kut.Ar2Kut(iface)
 
         ar2_kut.ar2kutCarpeta(final_path)
