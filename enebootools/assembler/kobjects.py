@@ -147,8 +147,10 @@ class BaseObject(object):
             req += new_reqs
             myreq.append(modname)
 
+
         req += myreq
 
+        req = list(set(req))
         # Limpieza ...
         clear_req = []
         for module_def in req:
