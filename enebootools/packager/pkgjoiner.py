@@ -152,7 +152,7 @@ def createpkg(iface, modulefolder, dst_file, emulate_mode):
             break
 
         files = find_files(fpath)
-        modulename = re.search("^\w+", module).group(0)
+        modulename = re.search(r"^\w+", module).group(0)
         if modulename in list_modules:
             print("módulo %s (%s) Duplicado. Ignorado." % (modulename, fpath))
             continue

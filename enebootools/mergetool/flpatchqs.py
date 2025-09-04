@@ -154,7 +154,7 @@ def qsclass_reader(iface, file_name, file_lines):
         line2 = latin1_to_ascii(line)
         m = re.search(r"/\*\*?\s*@\s*([\w\.,;-]+)\s+([^ */]+)?\s*\*/", line2)
         if m:
-            m2 = re.search("^\s*/\*\* @(\w+)( \w+)?\s*\*/\s*$", line)
+            m2 = re.search(r"^\s*/\*\* @(\w+)( \w+)?\s*\*/\s*$", line)
             if not m2:
                 iface.warn("Formato incorrecto de la linea %s" % repr(line))
             dtype = m.group(1)
@@ -172,7 +172,7 @@ def qsclass_reader(iface, file_name, file_lines):
             heu_from = None
             for l in class_lines[:32]:
                 m = re.search(
-                    "class\s+(?P<cname>\w+)(\s+extends\s+(?P<cbase>\w+))?(\s+/\*\*\s+%from:\s+(?P<cfrom>\w+)\s+\*/)?",
+                    r"class\s+(?P<cname>\w+)(\s+extends\s+(?P<cbase>\w+))?(\s+/\*\*\s+%from:\s+(?P<cfrom>\w+)\s+\*/)?",
                     l,
                 )
                 if m:
@@ -184,7 +184,7 @@ def qsclass_reader(iface, file_name, file_lines):
                 heu_cnames = []
                 other_functions = []
                 for l in class_lines:
-                    m = re.search("^function\s+(?P<cname>[a-zA-Z0-9]+)_\w+", l)
+                    m = re.search(r"^function\s+(?P<cname>[a-zA-Z0-9]+)_\w+", l)
                     if m:
                         heu_cname = m.group("cname")
                         if heu_cname not in heu_cnames:
@@ -283,7 +283,7 @@ def qsclass_reader(iface, file_name, file_lines):
                 linelist[-1].append(n)
             linelist.append(found)
         # const iface = new ifaceCtx( this );
-        m = re.search("(const|var)\s+iface\s*=\s*new\s*(?P<classname>\w+)\(\s*this\s*\);?", line)
+        m = re.search(r"(const|var)\s+iface\s*=\s*new\s*(?P<classname>\w+)\(\s*this\s*\);?", line)
 
         if m:
             iface_n = {
@@ -311,7 +311,7 @@ def extract_class_decl_info(iface, text_lines):
     classdict = {}
     for n, line in enumerate(text_lines):
         m = re.search(
-            "class\s+(?P<cname>\w+)(\s+extends\s+(?P<cbase>\w+))?(\s+/\*\*\s+%from:\s+(?P<cfrom>\w+)\s+\*/)?",
+            r"class\s+(?P<cname>\w+)(\s+extends\s+(?P<cbase>\w+))?(\s+/\*\*\s+%from:\s+(?P<cfrom>\w+)\s+\*/)?",
             line,
         )
         if m:
@@ -688,7 +688,7 @@ def patch_qs_dir(iface, base, patch):
             line = line.strip()
             if len(line) == 0:
                 continue
-            match = re.match("^([\w,]+) \((\w+)\) ([\w,]+)", line)
+            match = re.match(r"^([\w,]+) \((\w+)\) ([\w,]+)", line)
             if not match:
                 iface.error("Línea de movimiento de clases malformada: %s" % (repr(line)))
                 continue
@@ -1287,7 +1287,7 @@ def diff_qs_dir(iface, base, final):
                 prev_lines, post_lines = unprinted_lines[:idx], unprinted_lines[idx + 1 :]
                 if len(prev_lines) > 3:
                     for j in reversed(prev_lines):
-                        if re.search("^\s*(function|class) ", diff[j]):
+                        if re.search(r"^\s*(function|class) ", diff[j]):
                             break
                     omitted = len(prev_lines[: prev_lines.index(j)])
                     if omitted > 20:
@@ -2023,7 +2023,7 @@ def fix_class(iface, flbase, clbase, cdbase, classname, **updates):
         decl_block_no = clbase["decl"][classname]
         end_line = clbase["list"][decl_block_no][3]
         for n, line in enumerate(flbase[line_no:end_line], line_no):
-            m_it = re.finditer("(?P<fname>\w+)\s*\(\s*context\s*\);?", line)
+            m_it = re.finditer(r"(?P<fname>\w+)\s*\(\s*context\s*\);?", line)
             for m in m_it:
                 if m.group("fname") != cdbase[dclassname]["extends"]:
                     continue
@@ -2053,7 +2053,7 @@ def check_class(iface, flbase, clbase, cdbase, classname):
     found = []
     line_found = []
     for n, line in enumerate(flbase[line_no:end_line], line_no):
-        match = list(re.finditer("(?P<fname>\w+)\s*\(\s*context\s*\);", line))
+        match = list(re.finditer(r"(?P<fname>\w+)\s*\(\s*context\s*\);", line))
         if match:
             line_found.append(line)
             found += match
@@ -2080,7 +2080,7 @@ def qsclass_functions(iface, file_lines):
         line2 = latin1_to_ascii(line)
         m = re.search(r"/\*\*?\s*@\s*([\w\.,;-]+)\s+([^ */]+)?\s*\*/", line2)
         if m:
-            m2 = re.search("^\s*/\*\* @(\w+)( \w+)?\s*\*/\s*$", line)
+            m2 = re.search(r"^\s*/\*\* @(\w+)( \w+)?\s*\*/\s*$", line)
             if not m2:
                 iface.warn("Formato incorrecto de la linea %s" % repr(line))
             dtype = m.group(1)
@@ -2098,7 +2098,7 @@ def qsclass_functions(iface, file_lines):
             heu_from = None
             for l in class_lines[:32]:
                 m = re.search(
-                    "class\s+(?P<cname>\w+)(\s+extends\s+(?P<cbase>\w+))?(\s+/\*\*\s+%from:\s+(?P<cfrom>\w+)\s+\*/)?",
+                    r"class\s+(?P<cname>\w+)(\s+extends\s+(?P<cbase>\w+))?(\s+/\*\*\s+%from:\s+(?P<cfrom>\w+)\s+\*/)?",
                     l,
                 )
                 if m:
@@ -2110,7 +2110,7 @@ def qsclass_functions(iface, file_lines):
                 heu_cnames = []
                 other_functions = []
                 for l in class_lines:
-                    m = re.search("^function\s+(?P<cname>[a-zA-Z0-9]+)_(?P<fname>\w+)", l)
+                    m = re.search(r"^function\s+(?P<cname>[a-zA-Z0-9]+)_(?P<fname>\w+)", l)
                     if m:
                         fun_name = m.group("fname")
                         class_name = m.group("cname")

@@ -155,7 +155,7 @@ def pyclass_reader(iface, file_name, file_lines):
         line2 = latin1_to_ascii(line)
         m = re.search(r"#\s*@\s*([\w\.,;-]+)\s+([^ #]+)", line2)
         if m:
-            m2 = re.search("^\s*# @(\w+)( \w+)", line)
+            m2 = re.search(r"^\s*# @(\w+)( \w+)", line)
             if not m2:
                 iface.warn("Formato incorrecto de la linea %s" % repr(line))
             dtype = m.group(1)
@@ -174,7 +174,7 @@ def pyclass_reader(iface, file_name, file_lines):
             for l in class_lines[:32]:
                 # m = re.search("class\s+(?P<cname>\w+)\(((?P<cbase>\w+),)?(((?P<cfrom>\w.)+))\)",l)
                 m = re.search(
-                    "class\s+(?P<cname>([\w.])+)\(((?P<cbase>.+))(,(?P<cfrom>([\w.])+))?\)", l
+                    r"class\s+(?P<cname>([\w.])+)\(((?P<cbase>.+))(,(?P<cfrom>([\w.])+))?\)", l
                 )
                 if m:
                     heu_cname = m.group("cname")
@@ -184,45 +184,9 @@ def pyclass_reader(iface, file_name, file_lines):
             if heu_dtype is None:
                 heu_cnames = []
                 other_functions = []
-                """ for l in class_lines:
-                    m = re.search("def\s+(?P<cname>[a-zA-Z0-9]+)_\w+", l)
-                    if m:
-                        heu_cname = m.group("cname")
-                        if heu_cname not in heu_cnames:
-                            heu_cnames.append(heu_cname)
-                        if heu_cname != cname:
-                            other_functions.append(l)
-                if len(heu_cnames) > 1:
-                    iface.error(
-                        "En la clase %s existen funciones para diferentes clases (file: %s)"
-                        % (cname, file_name)
-                    )
-                    for l in other_functions:
-                        iface.error(">>>" + l)
-
-                    if cname in heu_cnames:
-                        heu_cname = cname """
 
                 if heu_cname:
                     heu_dtype = "class_definition"
-
-            """ if heu_dtype and dtype != "delete_class":
-                heu_line = "# @%s %s #" % (heu_dtype, heu_cname)
-                myline = "# @%s %s #" % (dtype, cname)
-                if "_" in cname:
-                    iface.info(
-                        "La autodetección de contenido de bloques no funciona con clases que contengan el carácter de guión bajo como %r"
-                        % cname
-                    )
-                elif heu_line != myline:
-                    iface.error(
-                        "La definición de bloque %r no corresponde con el contenido (file: %s:%d) ... asumiendo '%s'"
-                        % (line2.strip(), file_name, n, heu_line)
-                    )
-                    dtype, cname = heu_dtype, heu_cname
-                    classpatch += ["@@ -%d,1 +%d,1 @@" % (n + 1, n + 1)]
-                    classpatch += ["-%s" % line2.rstrip()]
-                    classpatch += ["+%s" % heu_line] """
 
             npos = len(linelist)
             if dtype == "class_declaration":
@@ -284,7 +248,7 @@ def pyclass_reader(iface, file_name, file_lines):
                 linelist[-1].append(n)
             linelist.append(found)
         # const iface = new ifaceCtx( this );
-        m = re.search("self.iface\s*=\s*(?P<classname>\w+)\(\s*self\s*\)", line)
+        m = re.search(r"self.iface\s*=\s*(?P<classname>\w+)\(\s*self\s*\)", line)
 
         if m:
             iface_n = {
@@ -312,7 +276,7 @@ def pyclass_reader(iface, file_name, file_lines):
 def extract_class_decl_info(iface, text_lines):
     classdict = {}
     for n, line in enumerate(text_lines):
-        m = re.search("class\s+(?P<cname>([\w.])+)\(((?P<cbase>.+))(,(?P<cfrom>([\w.])+))?\)", line)
+        m = re.search(r"class\s+(?P<cname>([\w.])+)\(((?P<cbase>.+))(,(?P<cfrom>([\w.])+))?\)", line)
         if m:
             cname = m.group("cname")
             classdict[cname] = {
@@ -692,7 +656,7 @@ def patch_py_dir(iface, base, patch):
             line = line.strip()
             if len(line) == 0:
                 continue
-            match = re.match("^([\w,]+) \((\w+)\) ([\w,]+)", line)
+            match = re.match(r"^([\w,]+) \((\w+)\) ([\w,]+)", line)
             if not match:
                 iface.error("Línea de movimiento de clases malformada: %s" % (repr(line)))
                 continue
@@ -1292,7 +1256,7 @@ def diff_py_dir(iface, base, final):
                 prev_lines, post_lines = unprinted_lines[:idx], unprinted_lines[idx + 1 :]
                 if len(prev_lines) > 3:
                     for j in reversed(prev_lines):
-                        if re.search("^\s*(def|class) ", diff[j]):
+                        if re.search(r"^\s*(def|class) ", diff[j]):
                             break
                     omitted = len(prev_lines[: prev_lines.index(j)])
                     if omitted > 20:
@@ -1971,7 +1935,7 @@ def fix_class(iface, flbase, clbase, cdbase, classname, **updates):
         end_line = clbase["list"][decl_block_no][3]
         for n, line in enumerate(flbase[line_no:end_line], line_no):
             m_it = re.finditer(
-                "def\s*__init__\(self, context\s*=\s*None\):\n\s*super\(?P<fname>\w+,\s*self\)\.__init__\(\s*context\s*\)",
+                r"def\s*__init__\(self, context\s*=\s*None\):\n\s*super\(?P<fname>\w+,\s*self\)\.__init__\(\s*context\s*\)",
                 line,
             )
             for m in m_it:
@@ -2005,7 +1969,7 @@ def check_class(iface, flbase, clbase, cdbase, classname):
     for n, line in enumerate(flbase[line_no:end_line], line_no):
         # match = list(re.finditer("def\s*__init__\(self, context\s*=\s*None\):\n\s*super\(?P<fname>\w+,\s*self\)\.__init__\(\s*context\s*\)", line))
         match = list(
-            re.finditer("super\((?P<fname>\w+),\s*self\)\.__init__\(\s*context\s*\)", line)
+            re.finditer(r"super\((?P<fname>\w+),\s*self\)\.__init__\(\s*context\s*\)", line)
         )
         if match:
             line_found.append(line)

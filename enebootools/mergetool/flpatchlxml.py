@@ -862,7 +862,7 @@ class XMLDiffer(object):
                             newelement = e
 
                     if newelement is None:  # Intentar mas a fondo:
-                        m = re.match("(\w+)\[(\w+),(\d+)\]", p0)
+                        m = re.match(r"(\w+)\[(\w+),(\d+)\]", p0)
                         if m:
                             tagname = m.group(1)
                             number = int(m.group(3)) - 1

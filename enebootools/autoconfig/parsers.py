@@ -12,18 +12,18 @@ def get_int(x):
 def get_float(x):
     if type(x) is int: return x
     x = str(x)
-    if not re.match("[0-9\.]+$",x): raise ValueError("value %s is not a float" % repr(x))
+    if not re.match(r"[0-9\.]+$",x): raise ValueError("value %s is not a float" % repr(x))
     return float(x)
 
 def get_hostname(x):
     x = get_string(x)
-    if not re.match("[a-z0-9\.]+$",x): raise ValueError("value %s is not a valid hostname" % repr(x))
+    if not re.match(r"[a-z0-9\.]+$",x): raise ValueError("value %s is not a valid hostname" % repr(x))
     return x
 
 def get_identifier(x):
     if x == "None" or x is None: return None
     x = get_string(x)
-    if not re.match("\w+$",x): raise ValueError("value %s is not a valid identifier" % repr(x))
+    if not re.match(r"\w+$",x): raise ValueError("value %s is not a valid identifier" % repr(x))
     return x
     
 def get_ipaddress(x):

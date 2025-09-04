@@ -1022,7 +1022,7 @@ _serialize = {
 #     invalid.
 
 def register_namespace(prefix, uri):
-    if re.match("ns\d+$", prefix):
+    if re.match(r"ns\d+$", prefix):
         raise ValueError("Prefix format reserved for internal use")
     for k, v in list(_namespace_map.items()):
         if k == uri or v == prefix:
