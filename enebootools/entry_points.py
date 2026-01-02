@@ -46,3 +46,12 @@ def main_extract_tool():
     if iface.parse_args():  # parsea los argumentos de entrada de consola
         # Si el parseo no devuelve error,
         iface.execute_actions()  # ejecuta las acciones detectadas.
+
+def main_uiimage():
+    from enebootools.uiimage import UIImageInterface
+
+    iface = UIImageInterface()
+
+    if iface.parse_args():  # parsea los argumentos de entrada de consola
+        # Si el parseo no devuelve error,
+        iface.execute_actions()  # ejecuta las acciones detectadas.
