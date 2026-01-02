@@ -3,7 +3,7 @@
 
 from enebootools import EnebooToolsInterface
 
-from enebootools.assembler import database as asmdb
+from enebootools.assembler import copylib, database as asmdb
 from enebootools.assembler import save_auto
 from enebootools.tools import dumps
 
@@ -144,6 +144,18 @@ class AssemblerInterface(EnebooToolsInterface):
             call_function=self.set_short_mode,
         )
 
+        self.copy_action = self.parser.declare_action(
+            name="copy",
+            args=["ext_name", "folder"],
+            description="Copia la $ext_name y dependencias en la carpeta $folder",
+            options=[""],
+            call_function=self.do_copy_action,
+        )
+        self.copy_action.set_help_arg(
+            ext_name="Nombre de la extensión a copiar",
+            classlist="Carpeta donde se va a copiar la extensión y dependencias",
+        )
+
     # :::: ACTIONS ::::
 
     def do_dbupdate(self):
@@ -211,6 +223,16 @@ class AssemblerInterface(EnebooToolsInterface):
     def do_new(self, subfoldername=None, description=None, patchurl=None):
         try:
             return asmdb.do_new(self, subfoldername, description, patchurl)
+        except Exception as e:
+            self.exception(type(e).__name__, str(e))
+
+    def do_copy_action(self, ext_name, folder):
+        try:
+            # 1 Comprobar si la carpeta es valida y existe
+            # 2 Sacar depednencias de extensiones y módulos
+            # 3 copiar.
+            return copylib.do_copy_action(self, ext_name, folder)
+
         except Exception as e:
             self.exception(type(e).__name__, str(e))
 

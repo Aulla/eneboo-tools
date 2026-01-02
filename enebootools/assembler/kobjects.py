@@ -390,8 +390,8 @@ class FeatureObject(BaseObject):
             srcpath = os.path.join(self.fullpath, "patches", patchdir)
             fpatch = FolderApplyPatch(self.iface, srcpath)
             info = fpatch.get_patch_info()
-            self.info["provides"] += info["provides"]
-            self.info["requires"] += info["requires"]
+            self.info["provides"] += info["provides"] if info else []
+            self.info["requires"] += info["requires"] if info else []
         return self.info
 
     # * base: compila las dependencias del proyecto (todo lo que necesitamos

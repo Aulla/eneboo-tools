@@ -159,6 +159,9 @@ class FolderApplyPatch(object):
                 actionname = action.tag.split("}")[1]
             actionname = actionname.lower()
 
+            if ":" in actionname:
+                actionname = actionname.split(":")[1]
+
             pathname = os.path.join(action.get("path"), action.get("name"))
 
             atype = None
@@ -170,6 +173,10 @@ class FolderApplyPatch(object):
                 atype = "requires"
             elif actionname == "patchxml":
                 atype = "requires"
+            elif actionname == "patchpy":
+                atype = "requires"
+            elif actionname == "deletefile":
+                continue
             info[atype].append(pathname)
         return info
 

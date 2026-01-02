@@ -21,7 +21,7 @@ from enebootools.mergetool import MergeToolInterface
 from .databasemodels import KnownObjects
 
 from .mypeewee import transactional
-from .kobjects import ObjectIndex, FeatureObject
+from .kobjects import ObjectIndex, FeatureObject, ModuleObject
 
 DISABLE_AR2KUT = False
 
@@ -349,6 +349,42 @@ def test_deps(iface, feat):
         for m in new_features:
             print(" - %s" % m)
         print()
+
+
+def dep_main_folder(iface, feat):
+    db = init_database()
+    obj = FeatureObject.find(feat)
+    if not obj:
+        obj = ModuleObject.find(feat)
+
+    if not obj:
+        iface.error("No se encuentra %s" % feat)
+        return
+
+    return obj.fullpath
+
+
+
+def deps(iface, feat):
+    db = init_database()
+    oi = ObjectIndex(iface)
+    oi.analyze_objects()
+    patchname = oi.get_patch_name(feat, default=True)
+    feature = FeatureObject.find(feat)
+    patch_folder = os.path.join(feature.fullpath, "patches", patchname)
+
+    file_index = oi.index_by_file()
+    from enebootools.mergetool.flpatchdir import FolderApplyPatch
+
+    fpatch = FolderApplyPatch(iface, patch_folder)
+    info = fpatch.get_patch_info()
+    fdep_features = feature._get_full_required_features()[:]
+    fdep_modules = feature._get_full_required_modules()[:]
+    fdep_features.append(feature.formal_name())
+    orig_fdep_features = fdep_features[:]
+    orig_fdep_modules = fdep_modules[:]
+
+    return [orig_fdep_features, orig_fdep_modules]
 
 
 def select_option(
