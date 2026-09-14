@@ -24,14 +24,14 @@ def do_copy_action(iface, ext_name, dest_folder):
     return True
 
 def copy_dep_to_folder(iface, feat, dest_folder):
-    orig_folder, subfolder = resolve_main_folder(iface, feat)    
+    orig_folder, formal_feat, subfolder = resolve_main_folder(iface, feat)
 
-    dest_folder = os.path.join(dest_folder, subfolder, feat)
+    dest_folder = os.path.join(dest_folder, subfolder, formal_feat)
     if os.path.exists(dest_folder):
         shutil.rmtree(dest_folder)
-    
+
     print("Copiando %s desde %s a %s" % (feat, orig_folder, dest_folder))
-    shutil.copytree(orig_folder, dest_folder) 
+    shutil.copytree(orig_folder, dest_folder)
 
 def check_if_folder_is_valid(dest_folder):
     if not os.path.exists(dest_folder):
@@ -43,7 +43,9 @@ def check_if_folder_is_valid(dest_folder):
     return True
 
 def resolve_main_folder(iface, feat):
-    #Extraer ruta previa a la ruta dada
+    from enebootools.assembler.kobjects import ModuleObject, FeatureObject
     orig_folder = asmdb.dep_main_folder(iface, feat)
-    return [orig_folder, str(orig_folder).replace("/%s" % feat, "").split("/")[-1]]
+    obj = ModuleObject.find(feat) or FeatureObject.find(feat)
+    formal = obj.formal_name() if obj else feat
+    return [orig_folder, formal, str(orig_folder).replace("/%s" % formal, "").split("/")[-1]]
    
